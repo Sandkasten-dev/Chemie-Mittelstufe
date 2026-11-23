@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Wie härtet Sekundenkleber aus?</title><style>:root{--deep:#065A82;--coral:#B4431F;--green:#0B6650;--ink:#1B2A38;--muted:#5A6E7B;--gelb:#F2C230;--bg:#F6F8FA;--line:#D5DDE3;--card:#FFFFFF}
+*{box-sizing:border-box}
+body{margin:0;font-family:Calibri,"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--bg);font-size:17px}
+header{background:var(--deep);color:#fff;padding:10px 18px;display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+header .ds{font-size:14px;opacity:.85;letter-spacing:.04em;text-transform:uppercase}
+header h1{margin:0;font-family:Cambria,Georgia,serif;font-size:22px;font-weight:700}
+nav.tabs{display:flex;gap:6px;padding:10px 14px 0;flex-wrap:wrap}
+nav.tabs button{border:1px solid var(--line);border-bottom:none;background:#E9EEF2;color:var(--ink);padding:10px 16px;border-radius:10px 10px 0 0;font-size:16px;cursor:pointer;min-height:44px}
+nav.tabs button.on{background:var(--card);font-weight:700;color:var(--deep)}
+main{background:var(--card);margin:0 14px 14px;border:1px solid var(--line);border-radius:0 10px 10px 10px;padding:14px}
+.pane{display:none}.pane.on{display:grid;grid-template-columns:minmax(0,2.1fr) minmax(260px,1fr);gap:16px}
+@media (max-width:900px){.pane.on{grid-template-columns:1fr}}
+.stage{border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden}
+.stage svg{display:block;width:100%;height:auto}
+.status{margin-top:8px;padding:8px 12px;background:#EEF3F7;border-radius:8px;min-height:44px;font-size:16px}
+.side{display:flex;flex-direction:column;gap:12px}
+.box{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.box h3{margin:0 0 6px;font-size:16px;color:var(--deep)}
+.hint{background:#FFF8E1;border-color:#F2C230}
+.task{background:#E8F3EE;border-color:var(--green)}
+.task h3{color:var(--green)}
+.btn{display:inline-block;border:none;border-radius:10px;padding:11px 16px;font-size:16px;cursor:pointer;background:var(--deep);color:#fff;min-height:44px;margin:3px 4px 3px 0}
+.btn.alt{background:#E2E8EE;color:var(--ink)}
+.btn:disabled{opacity:.4;cursor:default}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line)}
+.toggle:last-child{border-bottom:none}
+.sw{position:relative;width:62px;height:34px;border-radius:17px;background:#C9D3DB;border:none;cursor:pointer;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:28px;height:28px;border-radius:50%;background:#fff;transition:left .2s}
+.sw.on{background:var(--green)}.sw.on::after{left:31px}
+.count{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:16px}
+.count b{font-variant-numeric:tabular-nums;text-align:right}
+.choice{display:flex;flex-direction:column;gap:6px}
+.choice button{text-align:left;border:1px solid var(--line);background:#fff;border-radius:8px;padding:10px;font-size:16px;cursor:pointer;min-height:44px}
+.choice button.sel{border-color:var(--deep);background:#E6F0F6}
+.ok{color:var(--green);font-weight:700}.no{color:var(--coral);font-weight:700}
+.quiz{display:flex;flex-direction:column;gap:8px}
+.quiz .row{display:grid;grid-template-columns:1fr 230px 28px;gap:8px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:8px}
+.quiz select{font-size:16px;padding:8px;border-radius:6px;border:1px solid var(--line);min-height:44px}
+.hot{cursor:pointer}
+.hot rect{fill:transparent;stroke:transparent;stroke-width:4;rx:12}
+.hot:hover rect,.hot.seen rect{stroke:var(--gelb)}
+.hot.cur rect{stroke:var(--deep);fill:rgba(6,90,130,.06)}
+small.mod{color:var(--muted)}
+</style><script>const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+function el(tag,attrs={},parent){const ns=['svg','g','rect','circle','line','path','text','tspan','polyline'].includes(tag)?'http://www.w3.org/2000/svg':null;const e=ns?document.createElementNS(ns,tag):document.createElement(tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(node,s){if(node.textContent!==s)node.textContent=s;}
+let activeTab=null;const tabHooks={};
+function tab(id){activeTab=id;$$('nav.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===id));$$('.pane').forEach(p=>p.classList.toggle('on',p.id===id));if(tabHooks[id])tabHooks[id]();}
+</script></head><body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C48A00"/></marker></defs></svg>
+<header><span class="ds">Natur 9 · 0. DS Überleitung</span><h1>Wie härtet Sekundenkleber aus? – Die anionische Polymerisation</h1></header>
+<nav class="tabs">
+  <button data-tab="t1" onclick="tab('t1')">1 Das Monomer</button>
+  <button data-tab="t2" onclick="tab('t2')">2 Startreaktion</button>
+  <button data-tab="t3" onclick="tab('t3')">3 Kettenwachstum</button>
+  <button data-tab="t4" onclick="tab('t4')">4 Tube oder Finger?</button>
+  <button data-tab="t6" onclick="tab('t6')">5 Aushärten</button>
+  <button data-tab="t5" onclick="tab('t5')">6 Selbsttest</button>
+</nav>
+<main>
+
+<!-- ============ 1 Monomer ============ -->
+<section class="pane" id="t1">
+  <div>
+    <div class="stage">
+      <svg viewBox="250 120 600 330" id="mono"><text x="330" y="300" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">H<tspan dy="13" font-size="32">2</tspan><tspan dy="-13"></tspan>C</text><line x1="422" y1="278" x2="480" y2="278" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><line x1="422" y1="292" x2="480" y2="292" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="488" y="300" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">C</text><line x1="520" y1="260" x2="545" y2="225" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="535" y="215" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">COOR</text><line x1="505" y1="312" x2="505" y2="350" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="488" y="395" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">CN</text>
+        <g class="hot" data-k="db"><rect x="415" y="255" width="70" height="50"/></g>
+        <g class="hot" data-k="ch2"><rect x="318" y="248" width="95" height="72"/></g>
+        <g class="hot" data-k="cn"><rect x="476" y="340" width="95" height="70"/></g>
+        <g class="hot" data-k="coor"><rect x="525" y="160" width="160" height="68"/></g>
+      </svg>
+    </div>
+    <div class="status" id="st1">Tippt einen Teil des Moleküls an.</div>
+  </div>
+  <div class="side">
+    <div class="box"><h3>Erkundet</h3><div id="info1">Ethyl-2-cyanacrylat ist der Stoff im Sekundenkleber. Jedes einzelne Molekül ist ein <b>Monomer</b>.</div>
+      <p style="margin:8px 0 0"><small class="mod">Angetippt: <b id="seen1">0</b> von 4</small></p></div>
+    <div class="box hint"><h3>Hinweis</h3>R steht für die Ethylgruppe C₂H₅. Sie ist für die Reaktion nicht wichtig.</div>
+    <div class="box task"><h3>Arbeitsauftrag</h3>Tippt alle vier Teile an. Erklärt euch gegenseitig: Warum greift ein Elektronenpaar gerade am CH₂-Ende an?</div>
+  </div>
+</section>
+
+<!-- ============ 2 Startreaktion ============ -->
+<section class="pane" id="t2">
+  <div>
+    <div class="stage"><svg viewBox="30 150 1480 340" id="svgStart">
+      <g id="s0"><text x="80" y="215" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">H</text><line x1="96" y1="225" x2="96" y2="252" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="80" y="300" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">O</text><text x="80" y="385" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">H</text><line x1="96" y1="310" x2="96" y2="345" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><circle cx="130" cy="276" r="5" fill="#1B2A38"/><circle cx="130" cy="294" r="5" fill="#1B2A38"/><text x="330" y="300" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">H<tspan dy="13" font-size="32">2</tspan><tspan dy="-13"></tspan>C</text><line x1="422" y1="278" x2="480" y2="278" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><line x1="422" y1="292" x2="480" y2="292" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="488" y="300" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">C</text><line x1="520" y1="260" x2="545" y2="225" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="535" y="215" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">COOR</text><line x1="505" y1="312" x2="505" y2="350" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="488" y="395" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">CN</text><text x="55" y="470" font-size="30" text-anchor="start" fill="#5A6E7B" font-weight="400">Wasser</text><text x="400" y="470" font-size="30" text-anchor="start" fill="#5A6E7B" font-weight="400">Monomer (Cyanacrylat)</text></g><g id="s1"><text x="372" y="358" font-size="34" fill="#065A82" font-style="italic" font-weight="700">δ+</text></g><g id="s2"><path d="M135,265 Q260,100 395,248" fill="none" stroke="#C48A00" stroke-width="5" marker-end="url(#ah)"/></g><g id="s3"><path d="M455,270 Q490,205 510,250" fill="none" stroke="#C48A00" stroke-width="5" marker-end="url(#ah)"/></g><g id="s4"><line x1="760" y1="285" x2="916" y2="285" stroke="#1B2A38" stroke-width="5" stroke-linecap="round"/><path d="M930,285 l-26,-13 l0,26 z" fill="#1B2A38"/><text x="1058" y="215" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">H</text><line x1="1074" y1="225" x2="1074" y2="252" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="1058" y="300" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">O</text><circle cx="1036" cy="262" r="15" fill="none" stroke="#065A82" stroke-width="3.5"/><line x1="1028" y1="262" x2="1044" y2="262" stroke="#065A82" stroke-width="3.5" stroke-linecap="round"/><line x1="1036" y1="254" x2="1036" y2="270" stroke="#065A82" stroke-width="3.5" stroke-linecap="round"/><text x="1058" y="385" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">H</text><line x1="1074" y1="310" x2="1074" y2="345" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><line x1="1096" y1="285" x2="1130" y2="285" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="1136" y="300" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">CH<tspan dy="13" font-size="32">2</tspan><tspan dy="-13"></tspan></text><line x1="1230" y1="285" x2="1264" y2="285" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="1270" y="300" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">C</text><circle cx="1328" cy="266" r="15" fill="none" stroke="#B4431F" stroke-width="3.5"/><line x1="1320" y1="266" x2="1336" y2="266" stroke="#B4431F" stroke-width="3.5" stroke-linecap="round"/><line x1="1287" y1="255" x2="1287" y2="220" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="1255" y="210" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">COOR</text><line x1="1287" y1="312" x2="1287" y2="350" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="1270" y="395" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">CN</text><text x="1050" y="470" font-size="30" text-anchor="start" fill="#B4431F" font-weight="400">Anion mit negativem Kettenende</text></g>
+    </svg></div>
+    <div class="status" id="st2"></div>
+  </div>
+  <div class="side">
+    <div class="box"><h3>Schritt <span id="n2">0</span> von 4</h3>
+      <button class="btn alt" id="b2back">◀ zurück</button><button class="btn" id="b2next">weiter ▶</button></div>
+    <div class="box hint"><h3>Hinweis</h3>Ein gebogener Pfeil zeigt, wohin ein <b>Elektronenpaar</b> wandert. Er startet immer bei Elektronen.</div>
+    <div class="box task"><h3>Arbeitsauftrag</h3>Beschreibt die Startreaktion in drei Sätzen. Verwendet dabei: freies Elektronenpaar, δ+, Doppelbindung, Anion.</div>
+  </div>
+</section>
+
+<!-- ============ 3 Kettenwachstum ============ -->
+<section class="pane" id="t3">
+  <div>
+    <div class="stage"><svg viewBox="40 150 1620 340" id="svgWachs">
+      <g id="w0"><text x="98" y="215" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">H</text><line x1="114" y1="225" x2="114" y2="252" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="98" y="300" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">O</text><circle cx="76" cy="262" r="15" fill="none" stroke="#065A82" stroke-width="3.5"/><line x1="68" y1="262" x2="84" y2="262" stroke="#065A82" stroke-width="3.5" stroke-linecap="round"/><line x1="76" y1="254" x2="76" y2="270" stroke="#065A82" stroke-width="3.5" stroke-linecap="round"/><text x="98" y="385" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">H</text><line x1="114" y1="310" x2="114" y2="345" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><line x1="136" y1="285" x2="170" y2="285" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="176" y="300" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">CH<tspan dy="13" font-size="32">2</tspan><tspan dy="-13"></tspan></text><line x1="270" y1="285" x2="304" y2="285" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="310" y="300" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">C</text><circle cx="368" cy="266" r="15" fill="none" stroke="#B4431F" stroke-width="3.5"/><line x1="360" y1="266" x2="376" y2="266" stroke="#B4431F" stroke-width="3.5" stroke-linecap="round"/><line x1="327" y1="255" x2="327" y2="220" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="295" y="210" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">COOR</text><line x1="327" y1="312" x2="327" y2="350" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="310" y="395" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">CN</text><text x="450" y="300" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">+</text><text x="560" y="300" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">H<tspan dy="13" font-size="32">2</tspan><tspan dy="-13"></tspan>C</text><line x1="652" y1="278" x2="710" y2="278" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><line x1="652" y1="292" x2="710" y2="292" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="718" y="300" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">C</text><line x1="750" y1="260" x2="775" y2="225" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="765" y="215" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">COOR</text><line x1="735" y1="312" x2="735" y2="350" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="718" y="395" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">CN</text><text x="90" y="470" font-size="30" text-anchor="start" fill="#B4431F" font-weight="400">Anion</text><text x="610" y="470" font-size="30" text-anchor="start" fill="#5A6E7B" font-weight="400">Monomer</text></g><g id="w1"><path d="M380,250 Q500,110 625,248" fill="none" stroke="#C48A00" stroke-width="5" marker-end="url(#ah)"/><path d="M685,270 Q720,205 740,250" fill="none" stroke="#C48A00" stroke-width="5" marker-end="url(#ah)"/><text x="602" y="358" font-size="34" fill="#065A82" font-style="italic" font-weight="700">δ+</text></g><g id="w2"><line x1="900" y1="285" x2="996" y2="285" stroke="#1B2A38" stroke-width="5" stroke-linecap="round"/><path d="M1010,285 l-26,-13 l0,26 z" fill="#1B2A38"/><text x="1078" y="215" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">H</text><line x1="1094" y1="225" x2="1094" y2="252" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="1078" y="300" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">O</text><circle cx="1056" cy="262" r="15" fill="none" stroke="#065A82" stroke-width="3.5"/><line x1="1048" y1="262" x2="1064" y2="262" stroke="#065A82" stroke-width="3.5" stroke-linecap="round"/><line x1="1056" y1="254" x2="1056" y2="270" stroke="#065A82" stroke-width="3.5" stroke-linecap="round"/><text x="1078" y="385" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">H</text><line x1="1094" y1="310" x2="1094" y2="345" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><line x1="1116" y1="285" x2="1150" y2="285" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="1156" y="300" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">CH<tspan dy="13" font-size="32">2</tspan><tspan dy="-13"></tspan></text><line x1="1250" y1="285" x2="1284" y2="285" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="1290" y="300" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">C</text><line x1="1307" y1="255" x2="1307" y2="220" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="1275" y="210" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">COOR</text><line x1="1307" y1="312" x2="1307" y2="350" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="1290" y="395" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">CN</text><line x1="1324" y1="285" x2="1358" y2="285" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="1364" y="300" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">CH<tspan dy="13" font-size="32">2</tspan><tspan dy="-13"></tspan></text><line x1="1458" y1="285" x2="1492" y2="285" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="1498" y="300" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">C</text><circle cx="1556" cy="266" r="15" fill="none" stroke="#B4431F" stroke-width="3.5"/><line x1="1548" y1="266" x2="1564" y2="266" stroke="#B4431F" stroke-width="3.5" stroke-linecap="round"/><line x1="1515" y1="255" x2="1515" y2="220" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="1483" y="210" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">COOR</text><line x1="1515" y1="312" x2="1515" y2="350" stroke="#1B2A38" stroke-width="4" stroke-linecap="round"/><text x="1498" y="395" font-size="46" text-anchor="start" fill="#1B2A38" font-weight="400">CN</text><text x="1070" y="470" font-size="30" text-anchor="start" fill="#B4431F" font-weight="400">Kette ist um ein Monomer länger</text></g>
+    </svg></div>
+    <div class="stage" style="margin-top:10px"><svg viewBox="0 0 760 120" id="chain"></svg></div>
+    <div class="status" id="st3"></div>
+  </div>
+  <div class="side">
+    <div class="box" id="pred"><h3>Erst vorhersagen</h3>Das Anion greift ein neues Monomer an. Wo sitzt danach die negative Ladung?
+      <div class="choice" style="margin-top:8px">
+        <button data-v="a">am Anfang der Kette (beim O-Atom)</button>
+        <button data-v="b">in der Mitte der Kette</button>
+        <button data-v="c">am neuen Ende der Kette</button>
+      </div>
+      <button class="btn" id="predGo" disabled style="margin-top:8px">Vorhersage abgeben</button>
+      <div id="predFb" style="margin-top:6px"></div>
+    </div>
+    <div class="box"><h3>Kette verlängern</h3>
+      <button class="btn" id="b3add" disabled>+ Monomer anlagern</button><button class="btn alt" id="b3reset">neu</button>
+      <div class="count" style="margin-top:8px"><span>Monomere in der Kette</span><b id="c3">1</b></div></div>
+    <div class="box task"><h3>Arbeitsauftrag</h3>Erklärt, warum die Reaktion nach dem ersten Schritt nicht aufhört. Verwendet den Begriff <b>Kettenreaktion</b>.</div>
+  </div>
+</section>
+
+<!-- ============ 4 Tube oder Finger ============ -->
+<section class="pane" id="t4">
+  <div>
+    <div class="stage"><svg viewBox="0 0 760 420" id="sim"></svg></div>
+    <div class="status" id="st4"></div>
+  </div>
+  <div class="side">
+    <div class="box">
+      <div class="toggle"><span><b style="color:#065A82">Wasser</b> (Luftfeuchte, Schweiß)</span><button class="sw" id="swW" aria-label="Wasser"></button></div>
+      <div class="toggle"><span><b style="color:#B4431F">Säure</b> (Stabilisator)</span><button class="sw" id="swS" aria-label="Säure"></button></div>
+      <div style="margin-top:8px"><button class="btn alt" id="b4tube">Zustand Tube</button><button class="btn alt" id="b4finger">Zustand Finger</button><button class="btn alt" id="b4reset">neu</button></div>
+    </div>
+    <div class="box"><div class="count">
+      <span>freie Monomere</span><b id="k1">0</b>
+      <span>wachsende Ketten</span><b id="k2">0</b>
+      <span>abgebrochene Ketten</span><b id="k3">0</b>
+      <span>längste Kette</span><b id="k4">0</b></div></div>
+    <div class="box hint"><h3>Hinweis</h3>Modell: Punkte = Monomere, rote Ringe = negative Kettenenden. Die Zahlen sind stark verkleinert.</div>
+    <div class="box task"><h3>Arbeitsauftrag</h3>Vergleicht „Tube“ und „Finger“. Erklärt, warum der Kleber in der Tube flüssig bleibt und auf dem Finger in Sekunden fest wird.</div>
+  </div>
+</section>
+
+<!-- ============ 5 Aushärten ============ -->
+<section class="pane" id="t6">
+  <div>
+    <div class="stage" style="position:relative"><svg viewBox="0 0 760 420" id="cure"></svg>
+      <div id="phase" style="position:absolute;top:8px;right:10px;padding:6px 12px;border-radius:8px;font-weight:700;background:#E6F0F6;color:#065A82">flüssig</div></div>
+    <div class="status" id="st6"></div>
+  </div>
+  <div class="side">
+    <div class="box">
+      <button class="btn" id="b6run">▶ Start</button><button class="btn alt" id="b6reset">neu</button>
+      <button class="btn" id="b6pull" style="background:#B4431F">An einer Kette ziehen</button>
+      <div class="toggle" style="margin-top:6px"><span>Anziehung zwischen Ketten zeigen</span><button class="sw" id="sw6" aria-label="Anziehung zeigen"></button></div>
+    </div>
+    <div class="box"><div class="count">
+      <span>Bausteine insgesamt</span><b id="q0">0</b>
+      <span>freie Monomere</span><b id="q1">0</b>
+      <span>Ketten</span><b id="q2">0</b>
+      <span>mittlere Kettenlänge</span><b id="q3">0</b>
+      <span>Verhakungen (Kreuzungen)</span><b id="q4">0</b>
+      <span>Ketten, die sich berühren (Paare)</span><b id="q5">0</b></div>
+      <div style="margin-top:8px;font-size:15px">Beweglichkeit</div>
+      <div style="height:16px;background:#E2E8EE;border-radius:8px;overflow:hidden"><div id="mob" style="height:100%;width:100%;background:#065A82;transition:width .3s"></div></div>
+    </div>
+    <div class="box hint"><h3>Hinweis</h3>Modell: Punkte = Monomere, Linien = Polymerketten, gelbe Kreuze = Ketten überkreuzen sich (Verhakung). Gestrichelt: Ketten liegen eng beieinander und ziehen sich an. In echt sind es Milliarden Ketten aus Tausenden Bausteinen – sie bilden ein dichtes Netz.</div>
+    <div class="box task"><h3>Arbeitsauftrag</h3>Macht die Zieh-Probe am Anfang und am Ende. Erklärt mit den Begriffen <b>Polymer</b>, <b>Verhakung</b> und <b>Anziehung zwischen den Ketten</b>, warum der Kleber fest wird – obwohl nichts verdunstet.</div>
+  </div>
+</section>
+
+<!-- ============ 5 Selbsttest ============ -->
+<section class="pane" id="t5">
+  <div>
+    <div class="quiz" id="quiz"></div>
+    <div class="status" id="st5">Ordnet jeder Beschreibung den passenden Fachbegriff zu.</div>
+  </div>
+  <div class="side">
+    <div class="box"><button class="btn" id="b5check">Prüfen</button><button class="btn alt" id="b5reset">neu</button><div id="score5" style="margin-top:6px"></div></div>
+    <div class="box task"><h3>Arbeitsauftrag</h3>Löst den Test zuerst ohne die anderen Reiter. Wo ihr falsch liegt: Schaut im passenden Reiter nach.</div>
+  </div>
+</section>
+</main>
+
+<script>
+/* ---------- 1 Monomer ---------- */
+const INFO={
+ db:['Doppelbindung','Zwischen den beiden C-Atomen liegen <b>zwei Elektronenpaare</b>. Hier reagiert das Monomer: Ein Elektronenpaar kann umklappen.'],
+ ch2:['CH₂-Ende (δ+)','Weil die CN- und die COOR-Gruppe Elektronen zu sich ziehen, ist dieses C-Atom <b>leicht positiv (δ+)</b>. Hier greifen Elektronenpaare an.'],
+ cn:['Nitrilgruppe (CN)','Sie zieht Elektronen aus der Doppelbindung zu sich.'],
+ coor:['Estergruppe (COOR)','Sie zieht ebenfalls Elektronen zu sich. R = C₂H₅.']};
+const seen=new Set();
+$$('#mono .hot').forEach(g=>g.addEventListener('click',()=>{
+  const k=g.dataset.k; seen.add(k);
+  $$('#mono .hot').forEach(h=>h.classList.toggle('cur',h===g)); g.classList.add('seen');
+  $('#info1').innerHTML='<b>'+INFO[k][0]+'</b><br>'+INFO[k][1];
+  txt($('#seen1'),String(seen.size));
+  txt($('#st1'),'Angetippt: '+INFO[k][0]+'.');
+}));
+
+/* ---------- 2 Startreaktion ---------- */
+const ST2=['Wasser und ein Monomer treffen aufeinander.',
+ 'Das C-Atom am CH₂-Ende ist leicht positiv (δ+).',
+ 'Das freie Elektronenpaar des O-Atoms greift das δ+-C-Atom an.',
+ 'Ein Elektronenpaar der Doppelbindung klappt zum anderen C-Atom.',
+ 'Startreaktion: Es ist ein Anion mit negativ geladenem Ende entstanden.'];
+let s2=0;
+function draw2(){for(let i=0;i<5;i++)$('#s'+i).style.display=i<=s2?'':'none';
+  txt($('#n2'),String(s2));txt($('#st2'),ST2[s2]);$('#b2back').disabled=s2===0;$('#b2next').disabled=s2===4;}
+$('#b2next').onclick=()=>{if(s2<4){s2++;draw2();}};
+$('#b2back').onclick=()=>{if(s2>0){s2--;draw2();}};
+tabHooks.t2=draw2;
+
+/* ---------- 3 Kettenwachstum ---------- */
+let pick=null,unlocked=false,len=1;
+$$('#pred .choice button').forEach(b=>b.onclick=()=>{if(unlocked)return;pick=b.dataset.v;$$('#pred .choice button').forEach(x=>x.classList.toggle('sel',x===b));$('#predGo').disabled=false;});
+$('#predGo').onclick=()=>{if(!pick||unlocked)return;unlocked=true;$('#predGo').disabled=true;
+  $('#predFb').innerHTML=pick==='c'?'<span class="ok">✔ Richtig.</span> Prüft es in der Animation.':'<span class="no">✘ Nicht ganz.</span> Schaut euch an, wo der rote Kreis nach dem Anlagern sitzt.';
+  $('#b3add').disabled=false;draw3();};
+function draw3(){
+  $('#w0').style.display='';$('#w1').style.display=unlocked?'':'none';$('#w2').style.display=unlocked&&len>1?'':'none';
+  const svg=$('#chain');svg.innerHTML='';
+  const n=Math.min(len,24),dx=Math.min(56,640/Math.max(n,1));
+  el('text',{x:16,y:66,'font-size':20,fill:'#5A6E7B'},svg).textContent='H₂O⁺';
+  for(let i=0;i<n;i++){const x=80+i*dx;
+    if(i>0)el('line',{x1:x-dx+12,y1:60,x2:x-12,y2:60,stroke:'#1B2A38','stroke-width':3},svg);
+    el('circle',{cx:x,cy:60,r:12,fill:i===n-1?'#FBE9DF':'#DCE6F2',stroke:i===n-1?'#B4431F':'#065A82','stroke-width':3},svg);}
+  const xe=80+(n-1)*dx;el('text',{x:xe+16,y:46,'font-size':22,fill:'#B4431F','font-weight':700},svg).textContent='⊖';
+  if(len>24)el('text',{x:700,y:100,'font-size':16,fill:'#5A6E7B'},svg).textContent='… '+len;
+  txt($('#c3'),String(len));
+  txt($('#st3'),!unlocked?'Gebt zuerst eure Vorhersage ab.':(len===1?'Das Anion und ein neues Monomer – drückt „+ Monomer anlagern“.':'Kette aus '+len+' Monomeren. Das negative Ende sitzt am Kettenende.'));}
+$('#b3add').onclick=()=>{len++;draw3();};
+$('#b3reset').onclick=()=>{len=1;draw3();};
+tabHooks.t3=draw3;
+
+/* ---------- 4 Simulation ---------- */
+const W=760,H=420,svgS=$('#sim');let water=false,acid=false,parts=[],chains=[],raf=null,lastStatus='';
+function rnd(a,b){return a+Math.random()*(b-a);}
+function reset4(){parts=[];chains=[];for(let i=0;i<140;i++)parts.push({x:rnd(20,W-20),y:rnd(20,H-20),vx:rnd(-1,1),vy:rnd(-1,1),free:true});}
+function initiate(){const f=parts.filter(p=>p.free);if(!f.length)return;const p=f[Math.floor(Math.random()*f.length)];p.free=false;chains.push({m:[p],alive:true});}
+function step(){
+  if(water&&chains.filter(c=>c.alive).length<14&&Math.random()<0.03)initiate();
+  for(const p of parts){if(p.free){p.vx+=rnd(-.3,.3);p.vy+=rnd(-.3,.3);p.vx*=.95;p.vy*=.95;p.x+=p.vx;p.y+=p.vy;
+    if(p.x<10||p.x>W-10)p.vx*=-1;if(p.y<10||p.y>H-10)p.vy*=-1;p.x=Math.max(10,Math.min(W-10,p.x));p.y=Math.max(10,Math.min(H-10,p.y));}}
+  for(const c of chains){const h=c.m[c.m.length-1];
+    if(c.alive){h.vx=(h.vx||0)+rnd(-.6,.6);h.vy=(h.vy||0)+rnd(-.6,.6);h.vx*=.96;h.vy*=.96;h.x=Math.max(10,Math.min(W-10,h.x+h.vx));h.y=Math.max(10,Math.min(H-10,h.y+h.vy));
+      if(acid&&Math.random()<0.04){c.alive=false;continue;}
+      for(const p of parts){if(p.free&&Math.hypot(p.x-h.x,p.y-h.y)<24){p.free=false;c.m.push(p);break;}}}
+    for(let i=c.m.length-2;i>=0;i--){const a=c.m[i],b=c.m[i+1],d=Math.hypot(a.x-b.x,a.y-b.y)||1;if(d>10){a.x=b.x+(a.x-b.x)*10/d;a.y=b.y+(a.y-b.y)*10/d;}}}
+}
+function render4(){svgS.innerHTML='';
+  el('rect',{x:0,y:0,width:W,height:H,fill:acid&&!water?'#F4F6FA':'#FFFFFF'},svgS);
+  for(const c of chains){if(c.m.length>1){el('polyline',{points:c.m.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' '),fill:'none',stroke:c.alive?'#065A82':'#8A97A3','stroke-width':4,'stroke-linejoin':'round'},svgS);}}
+  for(const p of parts)if(p.free)el('circle',{cx:p.x,cy:p.y,r:4.5,fill:'#C48A00'},svgS);
+  for(const c of chains){const h=c.m[c.m.length-1];if(c.alive)el('circle',{cx:h.x,cy:h.y,r:8,fill:'none',stroke:'#B4431F','stroke-width':3},svgS);}
+  const free=parts.filter(p=>p.free).length,grow=chains.filter(c=>c.alive).length,stop=chains.length-grow,lon=chains.reduce((m,c)=>Math.max(m,c.m.length),0);
+  txt($('#k1'),String(free));txt($('#k2'),String(grow));txt($('#k3'),String(stop));txt($('#k4'),String(lon));
+  const s=(water?'Wasser an':'kein Wasser')+' · '+(acid?'Säure an':'keine Säure')+' – '+(chains.length?chains.length+' Ketten gestartet.':'Noch keine Kette gestartet.');
+  if(s!==lastStatus){txt($('#st4'),s);lastStatus=s;}}
+function loop(){if(activeTab==='t4'){step();render4();}if(activeTab==='t6'){if(C.run||C.pull>0){step6();if(C.run&&C.pull===0)step6();}render6();}raf=requestAnimationFrame(loop);}
+function setSw(){$('#swW').classList.toggle('on',water);$('#swS').classList.toggle('on',acid);}
+$('#swW').onclick=()=>{water=!water;setSw();};$('#swS').onclick=()=>{acid=!acid;setSw();};
+$('#b4tube').onclick=()=>{water=false;acid=true;setSw();reset4();};
+$('#b4finger').onclick=()=>{water=true;acid=false;setSw();reset4();};
+$('#b4reset').onclick=()=>{reset4();};
+reset4();setSw();
+
+/* ---------- 5 Aushärten ---------- */
+const svgC=$('#cure');let C={run:false,P:[],K:[],cross:[],vdw:[],pull:0,pullSet:new Set(),moved:new Set(),frame:0,showV:false,last:''};
+function reset6(){C.P=[];C.K=[];C.cross=[];C.vdw=[];C.pull=0;C.pullSet=new Set();C.moved=new Set();C.frame=0;C.run=false;
+  for(let i=0;i<450;i++)C.P.push({x:rnd(20,W-20),y:rnd(20,H-20),vx:rnd(-1,1),vy:rnd(-1,1),free:true});
+  txt($('#b6run'),'▶ Start');}
+function segX(a,b,c,d){const d1=(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x),d2=(b.x-a.x)*(d.y-a.y)-(b.y-a.y)*(d.x-a.x),d3=(d.x-c.x)*(a.y-c.y)-(d.y-c.y)*(a.x-c.x),d4=(d.x-c.x)*(b.y-c.y)-(d.y-c.y)*(b.x-c.x);return d1*d2<0&&d3*d4<0;}
+function analyse6(){C.cross=[];C.vdw=[];const segs=[];
+  C.K.forEach(k=>{k.n=0;k.v=0;k.links=new Set();});
+  C.K.forEach((k,ki)=>{for(let i=0;i<k.m.length-1;i++)segs.push([ki,k.m[i],k.m[i+1]]);});
+  for(let i=0;i<segs.length;i++)for(let j=i+1;j<segs.length;j++){const A=segs[i],B=segs[j];if(A[0]===B[0])continue;
+    if(Math.abs(A[1].x-B[1].x)>24||Math.abs(A[1].y-B[1].y)>24)continue;
+    if(segX(A[1],A[2],B[1],B[2])){const k1=C.K[A[0]],k2=C.K[B[0]];k1.n++;k2.n++;k1.links.add(B[0]);k2.links.add(A[0]);
+      C.cross.push({x:(A[1].x+A[2].x+B[1].x+B[2].x)/4,y:(A[1].y+A[2].y+B[1].y+B[2].y)/4});}}
+  C.pairs=0;
+  for(let i=0;i<C.K.length;i++)for(let j=i+1;j<C.K.length;j++){let hit=0;
+    for(const a of C.K[i].m){for(const b of C.K[j].m){if(Math.abs(a.x-b.x)<13&&Math.abs(a.y-b.y)<13&&Math.hypot(a.x-b.x,a.y-b.y)<13){hit++;if(hit<=4)C.vdw.push([a,b]);}}}
+    if(hit){C.pairs++;C.K[i].v++;C.K[j].v++;C.K[i].links.add(j);C.K[j].links.add(i);}}}
+function mob(k){return 1/(1+k.m.length/15+0.8*(k.n||0)+0.5*(k.v||0));}
+function step6(){C.frame++;
+  const free=C.P.filter(p=>p.free);
+  if(C.K.length<14&&free.length>20&&Math.random()<0.06){const p=free[Math.floor(Math.random()*free.length)];p.free=false;C.K.push({m:[p],dir:rnd(0,6.28)});}
+  for(const p of C.P)if(p.free){p.vx+=rnd(-.35,.35);p.vy+=rnd(-.35,.35);p.vx*=.95;p.vy*=.95;p.x+=p.vx;p.y+=p.vy;
+    if(p.x<10||p.x>W-10)p.vx*=-1;if(p.y<10||p.y>H-10)p.vy*=-1;p.x=Math.max(10,Math.min(W-10,p.x));p.y=Math.max(10,Math.min(H-10,p.y));}
+  if(C.frame%10===0)analyse6();
+  for(const k of C.K){const m=mob(k),h=k.m[k.m.length-1];
+    k.dir+=rnd(-.35,.35);let sp=1.6*m*(free.length>3?1:0.12);
+    let nx=h.x+Math.cos(k.dir)*sp,ny=h.y+Math.sin(k.dir)*sp;
+    if(nx<10||nx>W-10){k.dir=Math.PI-k.dir;nx=Math.max(10,Math.min(W-10,nx));}
+    if(ny<10||ny>H-10){k.dir=-k.dir;ny=Math.max(10,Math.min(H-10,ny));}
+    h.x=nx;h.y=ny;
+    const jig=free.length>3?.6:.15;for(const p of k.m){p.x+=rnd(-jig,jig)*m;p.y+=rnd(-jig,jig)*m;}
+    for(const p of C.P){if(p.free&&Math.abs(p.x-h.x)<20&&Math.abs(p.y-h.y)<20&&Math.hypot(p.x-h.x,p.y-h.y)<20){p.free=false;k.m.push(p);break;}}
+    for(let i=k.m.length-2;i>=0;i--){const a=k.m[i],b=k.m[i+1],d=Math.hypot(a.x-b.x,a.y-b.y)||1;if(d>9){a.x=b.x+(a.x-b.x)*9/d;a.y=b.y+(a.y-b.y)*9/d;}}}
+  if(C.pull>0){C.pull--;for(const ki of C.pullSet){const f=ki===C.pullRoot?3:2.4;for(const p of C.K[ki].m){p.x=Math.min(W-8,p.x+f);}}
+    if(C.pull===0){analyse6();}}}
+function pull6(){if(!C.K.length){txt($('#st6'),'Noch keine Kette da – startet zuerst die Reaktion.');return;}
+  analyse6();
+  const comp=r=>{const st=new Set([r]),q=[r];while(q.length){const i=q.shift();for(const j of C.K[i].links){if(!st.has(j)){st.add(j);q.push(j);}}}return st;};
+  let root=0,set=comp(0);C.K.forEach((k,i)=>{const c=comp(i);if(c.size>set.size||(c.size===set.size&&k.m.length>C.K[root].m.length)){root=i;set=c;}});
+  C.pullRoot=root;C.pullSet=set;C.pull=40;C.moved=set;
+  const msg='Zieh-Probe: An einer Kette gezogen – '+(set.size-1)+(set.size-1===1?' weitere Kette bewegt sich mit.':' weitere Ketten bewegen sich mit.');txt($('#st6'),msg);C.last=msg;}
+function render6(){svgC.innerHTML='';el('rect',{x:0,y:0,width:W,height:H,fill:'#fff'},svgC);
+  if(C.showV)for(const [a,b] of C.vdw)el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:'#0B6650','stroke-width':1.5,'stroke-dasharray':'3 3'},svgC);
+  C.K.forEach((k,i)=>{if(k.m.length>1)el('polyline',{points:k.m.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' '),fill:'none',stroke:C.pull>0&&C.pullSet.has(i)?(i===C.pullRoot?'#B4431F':'#E07A50'):'#065A82','stroke-width':4,'stroke-linejoin':'round','stroke-linecap':'round'},svgC);});
+  for(const c of C.cross){el('path',{d:`M${c.x-5},${c.y-5} L${c.x+5},${c.y+5} M${c.x+5},${c.y-5} L${c.x-5},${c.y+5}`,stroke:'#E0A800','stroke-width':3},svgC);}
+  for(const p of C.P)if(p.free)el('circle',{cx:p.x,cy:p.y,r:4.5,fill:'#C48A00'},svgC);
+  const free=C.P.filter(p=>p.free).length,nk=C.K.length,avg=nk?Math.round((C.P.length-free)/nk):0;
+  let mv=free;for(const k of C.K)mv+=k.m.length*mob(k)*1.6;const M=Math.max(0,Math.min(100,Math.round(100*mv/C.P.length)));
+  txt($('#q0'),String(C.P.length));txt($('#q1'),String(free));txt($('#q2'),String(nk));txt($('#q3'),String(avg));txt($('#q4'),String(C.cross.length));txt($('#q5'),String(C.pairs||0));
+  $('#mob').style.width=M+'%';
+  const fest=free<=C.P.length*0.04&&M<40;const ph=M>65?['flüssig','#E6F0F6','#065A82']:!fest?['zähflüssig','#FFF3D6','#8A5A00']:['fest','#E2F0E6','#0B6650'];
+  const pe=$('#phase');txt(pe,ph[0]);pe.style.background=ph[1];pe.style.color=ph[2];
+  if(C.pull===0){const s=C.run?(free?'Ketten wachsen – noch '+free+' freie Monomere.':'Alle Monomere sind verbaut.'):'Pausiert. Drückt „Start“.';if(s!==C.last&&!C.last.startsWith('Zieh')){txt($('#st6'),s);C.last=s;}else if(C.last.startsWith('Zieh')&&C.frame%240===0){C.last='';}}}
+$('#b6run').onclick=()=>{C.run=!C.run;txt($('#b6run'),C.run?'❚❚ Pause':'▶ Weiter');};
+$('#b6reset').onclick=()=>{reset6();C.last='';render6();};
+$('#b6pull').onclick=pull6;
+$('#sw6').onclick=()=>{C.showV=!C.showV;$('#sw6').classList.toggle('on',C.showV);};
+tabHooks.t6=()=>render6();
+reset6();
+
+/* ---------- 5 Selbsttest ---------- */
+const Q=[['kleines Einzelmolekül, aus dem die Kette aufgebaut wird','Monomer'],
+ ['langes Kettenmolekül aus sehr vielen Bausteinen','Polymer'],
+ ['Wasser greift ein Monomer an, ein Anion entsteht','Startreaktion'],
+ ['das negative Kettenende greift das nächste Monomer an','Kettenwachstum'],
+ ['ein H⁺ macht das Kettenende neutral','Kettenabbruch'],
+ ['Polymerisation, bei der das wachsende Ende negativ geladen ist','anionische Polymerisation'],
+ ['Säure in der Tube, die das Wachsen von Ketten verhindert','Stabilisator'],
+ ['lange Ketten verhaken sich und ziehen sich an – der Kleber wird fest','Aushärten']];
+const OPT=Q.map(q=>q[1]).sort((a,b)=>a.localeCompare(b,'de'));
+function build5(){const box=$('#quiz');box.innerHTML='';Q.forEach((q,i)=>{const r=el('div',{class:'row'},box);el('span',{},r).textContent=q[0];
+  const s=el('select',{'data-i':i},r);el('option',{value:''},s).textContent='– wählen –';OPT.forEach(o=>{el('option',{value:o},s).textContent=o;});el('span',{class:'mark'},r);});
+  txt($('#score5'),'');}
+$('#b5check').onclick=()=>{let ok=0,empty=0;$$('#quiz select').forEach(s=>{const i=+s.dataset.i,m=s.parentNode.querySelector('.mark');
+  if(!s.value){empty++;m.textContent='';return;}if(s.value===Q[i][1]){ok++;m.innerHTML='<span class="ok">✔</span>';}else m.innerHTML='<span class="no">✘</span>';});
+  $('#score5').innerHTML=empty?'Ordnet zuerst alle Begriffe zu ('+empty+' fehlen).':ok+' von '+Q.length+' richtig.';};
+$('#b5reset').onclick=build5;build5();
+
+tab('t1');loop();
+</script>
+
+</body></html>
