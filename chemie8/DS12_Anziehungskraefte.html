@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DS 12 · Teilchen ziehen sich an</title>
+<style>
+  :root{
+    --deep:#065A82; --coral:#B4431F; --green:#0B6650; --ink:#1B2A38; --muted:#5A6E7B;
+    --soft:#EAF2F6; --sand:#FCEEE8; --mint:#E9F6F2; --edge:#C6D6DE; --field:#F6FAFC;
+    --enzym:#8DB83A; --gelb:#F2C230; --violett:#6B4E9B;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;color:var(--ink);font-family:Calibri,"Segoe UI",Carlito,Arial,sans-serif;}
+  header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 24px;border-bottom:3px solid var(--deep);flex-wrap:wrap}
+  .kicker{font-size:14px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+  h1{font-family:Cambria,Georgia,serif;color:var(--deep);font-size:28px;margin:0}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap}
+  .tabs button{font:inherit;font-size:17px;font-weight:700;padding:8px 16px;border-radius:10px;border:2px solid var(--deep);background:#fff;color:var(--deep);cursor:pointer}
+  .tabs button.on{background:var(--deep);color:#fff}
+  main{padding:16px 24px 24px}
+  .panel{display:none}
+  .panel.on{display:block}
+  .grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:20px}
+  @media (max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--field);border:1px solid var(--edge);border-radius:14px;padding:14px 16px}
+  .ctrl{display:flex;flex-direction:column;gap:12px}
+  label.big,.big{font-weight:700;font-size:18px;color:var(--deep)}
+  input[type=range]{width:100%;height:28px;accent-color:var(--deep)}
+  .scale{display:flex;justify-content:space-between;font-size:15px;color:var(--muted);margin-top:-6px}
+  .toggle{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:700;cursor:pointer}
+  .toggle input{width:22px;height:22px;accent-color:var(--green)}
+  .bars{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+  .bar{display:grid;grid-template-columns:150px 1fr 70px;align-items:center;gap:10px;font-size:16px}
+  .track{height:20px;background:#fff;border:1px solid var(--edge);border-radius:10px;overflow:hidden}
+  .fill{height:100%;width:0;border-radius:10px;transition:width .15s linear}
+  .val{text-align:right;font-weight:700}
+  .status{font-size:18px;font-weight:700;padding:10px 14px;border-radius:10px;margin-top:8px;background:var(--soft);color:var(--deep);min-height:44px}
+  .status.warn{background:var(--sand);color:var(--coral)}
+  .status.ok{background:var(--mint);color:var(--green)}
+  .hint{font-size:15px;color:var(--muted);line-height:1.35;margin:0}
+  .task{background:var(--mint);border-left:5px solid var(--green);border-radius:8px;padding:10px 14px;font-size:16px;line-height:1.4}
+  .task b{color:var(--green)}
+  svg text{font-family:Calibri,"Segoe UI",Carlito,Arial,sans-serif}
+  canvas{width:100%;display:block;background:#fff;border:1px solid var(--edge);border-radius:10px}
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap}
+  .btnrow button,button.act{font:inherit;font-size:16px;font-weight:700;padding:8px 14px;border-radius:9px;border:2px solid var(--deep);background:#fff;color:var(--deep);cursor:pointer}
+  .btnrow button:hover,button.act:hover{background:var(--soft)}
+  .btnrow button.on{background:var(--deep);color:#fff}
+  .btnrow button:disabled{opacity:.4;cursor:default}
+  .btnrow button.coral{border-color:var(--coral);color:var(--coral)}
+  .counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+  .cnt{background:#fff;border:1px solid var(--edge);border-radius:10px;padding:8px 10px;text-align:center}
+  .cnt b{display:block;font-size:26px;color:var(--deep);line-height:1.1}
+  .cnt span{font-size:14px;color:var(--muted)}
+  .stepinfo{font-size:17px;line-height:1.4;min-height:72px}
+  .stepinfo h3{margin:0 0 4px;font-size:19px;color:var(--deep)}
+  select{font:inherit;font-size:16px;padding:4px 6px;border-radius:6px;border:1px solid var(--edge)}
+  .pred{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .pred span{font-weight:700;color:var(--deep);font-size:16px;margin-right:4px}
+  .lock{font-size:15px;color:var(--coral);font-weight:700}
+  table.obs{border-collapse:collapse;width:100%;font-size:16px}
+  table.obs th,table.obs td{border:1px solid var(--edge);padding:6px 8px;text-align:center}
+  table.obs th{background:var(--soft);color:var(--deep)}
+  table.obs td.cell{cursor:pointer;background:#fff;min-width:88px;height:40px;font-weight:700}
+  table.obs td.ok{background:var(--mint);color:var(--green)}
+  table.obs td.bad{background:var(--sand);color:var(--coral)}
+  .bigbtn{font:inherit;font-size:19px;font-weight:700;padding:12px 16px;border-radius:12px;border:3px solid var(--coral);background:#fff;color:var(--coral);cursor:pointer;width:100%}
+  .bigbtn.on{background:var(--coral);color:#fff}
+  svg{touch-action:none}
+  @media (max-width:600px){header{padding:10px 12px}h1{font-size:22px}main{padding:10px 10px 18px}.tabs button{font-size:15px;padding:7px 10px}}
+
+</style>
+</head>
+<body>
+<script>
+function tab(n){document.querySelectorAll('.tabs button').forEach((b,i)=>b.classList.toggle('on',i===n));
+document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('on',i===n));
+if(window.onTab)window.onTab(n);}
+const $=id=>document.getElementById(id);
+const NS='http://www.w3.org/2000/svg';
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(parent,x,y,s,attrs){const t=el('text',Object.assign({x:x,y:y},attrs||{}),parent);t.textContent=s;return t;}
+</script>
+<!--TITLE:DS 12 · Teilchen ziehen sich an-->
+<header>
+  <div><div class="kicker">Doppelstunde 12 · Teilchenmodell, Aussage 5</div><h1>Teilchen ziehen sich an</h1></div>
+  <div class="tabs"><button class="on" onclick="tab(0)">1 · Tropfen auf der Münze</button><button onclick="tab(1)">2 · Wer siedet zuerst?</button></div>
+</header>
+<main>
+<!-- ================= Reiter 1 ================= -->
+<section class="panel on">
+  <div class="grid">
+    <div class="card">
+      <svg id="sv1" viewBox="0 0 760 420" width="100%"></svg>
+      <div id="st1" class="status"></div>
+    </div>
+    <div class="ctrl">
+      <div class="card">
+        <div class="big">Flüssigkeit</div>
+        <div class="btnrow" id="liqBtns" style="margin-top:6px"><button onclick="setLiq(0)">Wasser</button><button onclick="setLiq(1)">Alkohol</button></div>
+        <div class="pred" style="margin-top:12px"><span>Vorhersage: Wo passen mehr Tropfen auf die Münze?</span>
+          <button class="act" id="q0" onclick="pred1(0)">Wasser</button><button class="act" id="q1" onclick="pred1(1)">Alkohol</button><button class="act" id="q2" onclick="pred1(2)">gleich viele</button></div>
+        <button id="drop" class="bigbtn" style="margin-top:12px" onclick="addDrop()" disabled>Einen Tropfen dazugeben</button>
+        <div id="lock1" class="lock" style="margin-top:4px">Erst eine Vorhersage abgeben.</div>
+        <div class="btnrow" style="margin-top:8px"><button class="coral" onclick="resetCoin()">Münze abwischen</button></div>
+      </div>
+      <div class="card">
+        <div class="counters">
+          <div class="cnt"><b id="cW">–</b><span>Tropfen Wasser</span></div>
+          <div class="cnt"><b id="cA">–</b><span>Tropfen Alkohol</span></div>
+        </div>
+      </div>
+      <p class="task"><b>Untersucht:</b> Probiert beide Flüssigkeiten aus. Schaut euch in der Lupe ein Teilchen innen und eines am Rand an: Wohin wird es gezogen?</p>
+      <p class="hint">✓ = bis zum Überlaufen gezählt. Modell: Die Teilchen sind stark vergrößert, die Pfeile zeigen Anziehungskräfte – sehen kann man sie nicht. Tropfenzahlen sind Beispielwerte; sie hängen von Pipette und Münze ab. Brennspiritus besteht fast nur aus Alkohol.</p>
+    </div>
+  </div>
+</section>
+<!-- ================= Reiter 2 ================= -->
+<section class="panel">
+  <div class="grid">
+    <div class="card">
+      <svg id="sv2" viewBox="0 0 760 420" width="100%"></svg>
+      <div id="st2" class="status"></div>
+    </div>
+    <div class="ctrl">
+      <div class="card">
+        <div class="pred"><span>Vorhersage: Welche Flüssigkeit siedet zuerst?</span>
+          <button class="act" id="r0" onclick="pred2(0)">Isopentan</button><button class="act" id="r1" onclick="pred2(1)">Alkohol</button><button class="act" id="r2" onclick="pred2(2)">Wasser</button></div>
+        <label class="big" for="T" style="display:block;margin-top:12px">Temperatur</label>
+        <input id="T" type="range" min="0" max="110" value="20" disabled>
+        <div class="scale"><span>0 °C</span><span id="Tv">20 °C</span><span>110 °C</span></div>
+        <div id="lock2" class="lock">Erst eine Vorhersage abgeben.</div>
+        <div class="btnrow" style="margin-top:8px"><button class="coral" onclick="reset2()">Neu</button></div>
+      </div>
+      <div class="card">
+        <div class="big" style="margin-bottom:6px">Eure Tabelle</div>
+        <table class="obs" id="tab2">
+          <tr><th>Flüssigkeit</th><th>siedet ab … °C</th><th>Anziehung</th></tr>
+        </table>
+        <div class="btnrow" style="margin-top:8px"><button onclick="check2()">Prüfen</button></div>
+        <div id="msg2" class="hint" style="margin-top:6px"></div>
+      </div>
+      <p class="task"><b>Untersucht:</b> Erhöht die Temperatur langsam. Tragt ein, ab welcher Temperatur die Teilchen jeder Flüssigkeit massenhaft herausfliegen. Ordnet dann zu: Bei welchem Stoff ziehen sich die Teilchen am stärksten an?</p>
+      <p class="hint">Modell: Linien zwischen den Teilchen stehen für die Anziehung – dicke Linie, starke Anziehung. Die Teilchen behalten beim Sieden ihre Größe. Auch unterhalb der Siedetemperatur fliegen einzelne Teilchen heraus (Verdunsten).</p>
+    </div>
+  </div>
+</section>
+</main>
+<script>
+/* ===== Reiter 1: Tropfen auf der Münze ===== */
+const sv1=$('sv1');
+const LIQ=[{n:'Wasser',max:26,col:'#3C7FB1',k:1.0},{n:'Alkohol',max:8,col:'#6FA84A',k:0.35}];
+let li=0,p1=null,drops=0,spilled=false,res=[null,null],falling=null,last1='';
+function setLiq(i){li=i;resetCoin();[...$('liqBtns').children].forEach((b,k)=>b.classList.toggle('on',k===i));}
+function pred1(v){p1=v;['q0','q1','q2'].forEach((id,k)=>{$(id).style.background=k===v?'var(--deep)':'';$(id).style.color=k===v?'#fff':'';});$('drop').disabled=false;$('lock1').textContent='';}
+function resetCoin(){drops=0;spilled=false;falling=null;}
+function addDrop(){if(p1===null||spilled||falling)return;falling={y:30};}
+setLiq(0);
+function dropShape(n,L){ // Höhe und Breite des Tropfens
+  const coinR=110;const f=n/L.max;
+  const w=Math.min(coinR,40+n*14*(L.k<0.5?2.4:1));
+  const h=n===0?0:Math.min(10+f*58*L.k+ (L.k<0.5?6:0), 72);
+  return {w,h};}
+function frame1(){
+  const L=LIQ[li];
+  if(falling){falling.y+=9;const top=300-dropShape(drops,L).h;if(falling.y>=top){falling=null;drops++;if(drops>L.max){spilled=true;drops=L.max;}}}
+  sv1.innerHTML='';
+  // Makro: Münze
+  txt(sv1,180,28,L.n+' auf der Münze',{'text-anchor':'middle','font-size':17,'font-weight':700,fill:'#5A6E7B'});
+  // Pipette
+  el('rect',{x:170,y:36,width:20,height:60,rx:4,fill:'#EEE',stroke:'#888'},sv1);el('path',{d:'M174,96 L180,118 L186,96 Z',fill:'#EEE',stroke:'#888'},sv1);
+  el('ellipse',{cx:180,cy:310,rx:112,ry:18,fill:'#C9A26B',stroke:'#8A6A3A','stroke-width':2},sv1);
+  el('rect',{x:68,y:310,width:224,height:14,fill:'#B88E55'},sv1);el('ellipse',{cx:180,cy:324,rx:112,ry:18,fill:'#A87F49'},sv1);
+  el('ellipse',{cx:180,cy:310,rx:112,ry:18,fill:'#C9A26B',stroke:'#8A6A3A','stroke-width':2},sv1);
+  const s=dropShape(drops,L);
+  if(drops>0){el('path',{d:`M${180-s.w},306 C${180-s.w},${306-s.h*1.25} ${180+s.w},${306-s.h*1.25} ${180+s.w},306 Z`,fill:L.col,opacity:.55,stroke:L.col,'stroke-width':2},sv1);}
+  if(spilled){el('path',{d:`M${180+s.w-6},306 q30,6 40,40 q-25,10 -60,6 z`,fill:L.col,opacity:.45},sv1);txt(sv1,180,380,'übergelaufen!',{'text-anchor':'middle','font-size':18,'font-weight':700,fill:'#B4431F'});}
+  if(falling)el('circle',{cx:180,cy:falling.y+100,r:7,fill:L.col,opacity:.7},sv1);
+  // Lupe: Teilchen am Rand und innen
+  el('line',{x1:180+s.w*0.6,y1:306-s.h*0.8,x2:430,y2:140,stroke:'#C6D6DE','stroke-width':2,'stroke-dasharray':'5 5'},sv1);
+  el('circle',{cx:570,cy:200,r:170,fill:'#F4F9FC',stroke:'#065A82','stroke-width':3},sv1);
+  txt(sv1,570,22,'Lupe: Rand des Tropfens',{'text-anchor':'middle','font-size':16,'font-weight':700,fill:'#065A82'});
+  // Teilchengitter unter der Oberfläche (Oberfläche bei y=110)
+  const tt=performance.now()/1000;const pts=[];
+  for(let r=0;r<5;r++)for(let c=0;c<7;c++){const x=450+c*40+(r%2)*20,y=120+r*40;if(Math.hypot(x-570,y-200)<150)pts.push([x+Math.sin(tt*5+r+c)*2,y+Math.cos(tt*4+r*2+c)*2,r]);}
+  const lw=L.k>0.5?4:1.5;
+  pts.forEach((a,i)=>pts.forEach((b,j)=>{if(j>i&&Math.hypot(a[0]-b[0],a[1]-b[1])<46)el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:L.col,'stroke-width':lw,opacity:.35},sv1);}));
+  pts.forEach(a=>el('circle',{cx:a[0],cy:a[1],r:L.k>0.5?11:13,fill:L.col},sv1));
+  txt(sv1,450,104,'Luft',{'font-size':15,fill:'#5A6E7B'});
+  // Kräfte an einem Randteilchen (oben) und einem inneren Teilchen
+  const rp=pts.find(p=>p[2]===0&&p[0]>540)||pts[0], ip=pts.find(p=>p[2]===2&&p[0]>540)||pts[1];
+  const arrow=(x,y,dx,dy)=>{const L2=Math.hypot(dx,dy);el('line',{x1:x,y1:y,x2:x+dx,y2:y+dy,stroke:'#B4431F','stroke-width':3},sv1);const ux=dx/L2,uy=dy/L2;el('path',{d:`M${x+dx},${y+dy} l${-ux*10-uy*5},${-uy*10+ux*5} l${uy*10},${-ux*10} z`,fill:'#B4431F'},sv1);};
+  const F=L.k>0.5?34:16;
+  [[-1,0],[1,0],[0,1]].forEach(d=>arrow(rp[0],rp[1],d[0]*F,d[1]*F));
+  [[-1,0],[1,0],[0,1],[0,-1]].forEach(d=>arrow(ip[0],ip[1],d[0]*F,d[1]*F));
+  el('circle',{cx:rp[0],cy:rp[1],r:15,fill:'none',stroke:'#F2C230','stroke-width':4},sv1);
+  el('circle',{cx:ip[0],cy:ip[1],r:15,fill:'none',stroke:'#F2C230','stroke-width':4},sv1);
+  txt(sv1,rp[0]+20,rp[1]-18,'am Rand',{'font-size':14,'font-weight':700,fill:'#1B2A38'});
+  txt(sv1,ip[0]+20,ip[1]-18,'innen',{'font-size':14,'font-weight':700,fill:'#1B2A38'});
+  if(drops>0||spilled)res[li]={n:drops,sp:spilled};const sh=r=>r?(r.n+(r.sp?' ✓':'')):'–';$('cW').textContent=sh(res[0]);$('cA').textContent=sh(res[1]);
+  const st=$('st1');let m;
+  if(p1===null)m='Gebt zuerst eine Vorhersage ab.';
+  else if(spilled)m='Der Tropfen ist übergelaufen. Auf die Münze passten '+L.max+' Tropfen '+L.n+'.';
+  else if(drops===0)m='Die Münze ist trocken. Gebt Tropfen dazu.';
+  else m=drops+' Tropfen '+L.n+' liegen auf der Münze. Der Tropfen ist '+(L.k>0.5?'hoch gewölbt.':'flach und breit.');
+  if(m!==last1){st.textContent=m;last1=m;}
+}
+/* ===== Reiter 2: Wer siedet zuerst? ===== */
+const sv2=$('sv2');
+const S=[{n:'Isopentan',tb:28,col:'#B4431F',k:0.25},{n:'Alkohol',tb:78,col:'#6FA84A',k:0.55},{n:'Wasser',tb:100,col:'#3C7FB1',k:1.0}];
+let p2=null,boxes,last2='',ans={};
+function mkBox(i){const P=[];for(let r=0;r<4;r++)for(let c=0;c<6;c++)P.push({hx:20+c*30+(r%2)*15,hy:300-r*28,x:0,y:0,vx:0,vy:0,out:false});P.forEach(p=>{p.x=p.hx;p.y=p.hy;});return P;}
+function reset2(){boxes=S.map((s,i)=>mkBox(i));$('T').value=20;}
+function pred2(v){p2=v;['r0','r1','r2'].forEach((id,k)=>{$(id).style.background=k===v?'var(--deep)':'';$(id).style.color=k===v?'#fff':'';});$('T').disabled=false;$('lock2').textContent='';}
+reset2();
+// Tabelle
+S.forEach((s,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<th>${s.n}</th><td><input id="in${i}" type="number" inputmode="numeric" style="width:70px;font:inherit;font-size:16px;padding:4px"></td><td class="cell" id="an${i}"></td>`;$('tab2').appendChild(tr);
+  $('an'+i).onclick=()=>{const o=['schwach','mittel','stark'];const cur=ans[i];ans[i]=o[(o.indexOf(cur)+1)%3];$('an'+i).textContent=ans[i];$('an'+i).classList.remove('ok','bad');};});
+function check2(){const vals=S.map((s,i)=>$('in'+i).value.trim());
+  if(vals.some(v=>v==='')||S.some((s,i)=>!ans[i])){$('msg2').textContent='Füllt zuerst alle Felder aus.';return;}
+  let ok=0;const right=['schwach','mittel','stark'];
+  S.forEach((s,i)=>{const g1=Math.abs(+vals[i]-s.tb)<=4;const g2=ans[i]===right[i];$('in'+i).style.background=g1?'#E9F6F2':'#FCEEE8';$('an'+i).classList.toggle('ok',g2);$('an'+i).classList.toggle('bad',!g2);if(g1&&g2)ok++;});
+  $('msg2').textContent=ok===3?'✔ Alles richtig. Je stärker die Anziehung, desto …? Formuliert den Satz selbst.':'✘ Noch nicht alles richtig. Prüft die rot markierten Felder mit dem Regler.';}
+function frame2(){
+  const T=+$('T').value;$('Tv').textContent=T+' °C';
+  sv2.innerHTML='';
+  S.forEach((s,i)=>{
+    const X=20+i*248,Y=40,W=230,H=330;
+    el('rect',{x:X,y:Y,width:W,height:H,rx:12,fill:'#F4F9FC',stroke:'#C6D6DE'},sv2);
+    txt(sv2,X+W/2,Y-12,s.n,{'text-anchor':'middle','font-size':18,'font-weight':700,fill:s.col});
+    el('rect',{x:X,y:Y+H-130,width:W,height:130,fill:'#E8F1F7'},sv2);
+    const P=boxes[i];const boil=T>=s.tb;
+    const rate=boil?0.05:Math.min(0.004,0.004*Math.exp((T-s.tb)/12));
+    if(p2!==null){const inL=P.filter(p=>!p.out);if(inL.length&&Math.random()<rate*inL.length/4){const top=inL.sort((a,b)=>a.hy-b.hy)[0];top.out=true;top.vx=(Math.random()-.5)*4;top.vy=-2-Math.random()*2;}}
+    const sp=0.6+T/60;
+    const live=P.filter(p=>!p.out);
+    live.forEach((p,k)=>{const c=k%6,r=Math.floor(k/6);p.hx=20+c*30+(r%2)*15+12;p.hy=300-r*28;const t=performance.now()/1000;const amp=0.6+T*0.03;p.x+=(p.hx+Math.sin(t*9+k)*amp-p.x)*0.25;p.y+=(p.hy+Math.cos(t*8+k*1.3)*amp-p.y)*0.25;});
+    P.filter(p=>p.out).forEach(p=>{p.x+=p.vx*sp;p.y+=p.vy*sp;if(p.x<10||p.x>W-10)p.vx*=-1;if(p.y<10){p.vy=Math.abs(p.vy);}const lim=300-Math.ceil(live.length/6)*28-10;if(p.y>lim){p.vy=-Math.abs(p.vy);}});
+    const lw=1+s.k*4;
+    live.forEach((a,ia)=>live.forEach((b,ib)=>{if(ib>ia&&Math.hypot(a.x-b.x,a.y-b.y)<36)el('line',{x1:X+a.x,y1:Y+a.y,x2:X+b.x,y2:Y+b.y,stroke:s.col,'stroke-width':lw,opacity:.4},sv2);}));
+    P.forEach(p=>el('circle',{cx:X+Math.min(W-8,Math.max(8,p.x)),cy:Y+Math.max(8,p.y),r:9,fill:s.col},sv2));
+    const nOut=P.filter(p=>p.out).length;
+    txt(sv2,X+W/2,Y+H+28,nOut+' von 24 Teilchen in der Luft',{'text-anchor':'middle','font-size':15,fill:'#1B2A38'});
+    if(boil&&live.length)txt(sv2,X+W/2,Y+30,'siedet!',{'text-anchor':'middle','font-size':18,'font-weight':700,fill:'#B4431F'});
+  });
+  const st=$('st2');let m;
+  if(p2===null)m='Gebt zuerst eine Vorhersage ab, dann wird der Regler frei.';
+  else{const b=S.filter(s=>T>=s.tb).map(s=>s.n);m=b.length?('Bei '+T+' °C fliegen die Teilchen massenhaft heraus bei: '+b.join(', ')+'.'):('Bei '+T+' °C bleiben die meisten Teilchen in der Flüssigkeit. Ab und zu fliegt eines heraus.');}
+  if(m!==last2){st.textContent=m;last2=m;}
+}
+let active=0;window.onTab=n=>{active=n;};
+function loop(){if(active===0)frame1();else frame2();requestAnimationFrame(loop);}
+loop();
+</script>
+
+</body>
+</html>

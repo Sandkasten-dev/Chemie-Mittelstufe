@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DS 10 · Was passiert beim Sieden?</title>
+<style>
+  :root{
+    --deep:#065A82; --coral:#B4431F; --green:#0B6650; --ink:#1B2A38; --muted:#5A6E7B;
+    --soft:#EAF2F6; --sand:#FCEEE8; --mint:#E9F6F2; --edge:#C6D6DE; --field:#F6FAFC;
+    --enzym:#8DB83A; --gelb:#F2C230; --violett:#6B4E9B;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;color:var(--ink);font-family:Calibri,"Segoe UI",Carlito,Arial,sans-serif;}
+  header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 24px;border-bottom:3px solid var(--deep);flex-wrap:wrap}
+  .kicker{font-size:14px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+  h1{font-family:Cambria,Georgia,serif;color:var(--deep);font-size:28px;margin:0}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap}
+  .tabs button{font:inherit;font-size:17px;font-weight:700;padding:8px 16px;border-radius:10px;border:2px solid var(--deep);background:#fff;color:var(--deep);cursor:pointer}
+  .tabs button.on{background:var(--deep);color:#fff}
+  main{padding:16px 24px 24px}
+  .panel{display:none}
+  .panel.on{display:block}
+  .grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:20px}
+  @media (max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--field);border:1px solid var(--edge);border-radius:14px;padding:14px 16px}
+  .ctrl{display:flex;flex-direction:column;gap:12px}
+  label.big,.big{font-weight:700;font-size:18px;color:var(--deep)}
+  input[type=range]{width:100%;height:28px;accent-color:var(--deep)}
+  .scale{display:flex;justify-content:space-between;font-size:15px;color:var(--muted);margin-top:-6px}
+  .toggle{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:700;cursor:pointer}
+  .toggle input{width:22px;height:22px;accent-color:var(--green)}
+  .bars{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+  .bar{display:grid;grid-template-columns:150px 1fr 70px;align-items:center;gap:10px;font-size:16px}
+  .track{height:20px;background:#fff;border:1px solid var(--edge);border-radius:10px;overflow:hidden}
+  .fill{height:100%;width:0;border-radius:10px;transition:width .15s linear}
+  .val{text-align:right;font-weight:700}
+  .status{font-size:18px;font-weight:700;padding:10px 14px;border-radius:10px;margin-top:8px;background:var(--soft);color:var(--deep);min-height:44px}
+  .status.warn{background:var(--sand);color:var(--coral)}
+  .status.ok{background:var(--mint);color:var(--green)}
+  .hint{font-size:15px;color:var(--muted);line-height:1.35;margin:0}
+  .task{background:var(--mint);border-left:5px solid var(--green);border-radius:8px;padding:10px 14px;font-size:16px;line-height:1.4}
+  .task b{color:var(--green)}
+  svg text{font-family:Calibri,"Segoe UI",Carlito,Arial,sans-serif}
+  canvas{width:100%;display:block;background:#fff;border:1px solid var(--edge);border-radius:10px}
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap}
+  .btnrow button,button.act{font:inherit;font-size:16px;font-weight:700;padding:8px 14px;border-radius:9px;border:2px solid var(--deep);background:#fff;color:var(--deep);cursor:pointer}
+  .btnrow button:hover,button.act:hover{background:var(--soft)}
+  .btnrow button.on{background:var(--deep);color:#fff}
+  .btnrow button:disabled{opacity:.4;cursor:default}
+  .btnrow button.coral{border-color:var(--coral);color:var(--coral)}
+  .counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+  .cnt{background:#fff;border:1px solid var(--edge);border-radius:10px;padding:8px 10px;text-align:center}
+  .cnt b{display:block;font-size:26px;color:var(--deep);line-height:1.1}
+  .cnt span{font-size:14px;color:var(--muted)}
+  .stepinfo{font-size:17px;line-height:1.4;min-height:72px}
+  .stepinfo h3{margin:0 0 4px;font-size:19px;color:var(--deep)}
+  select{font:inherit;font-size:16px;padding:4px 6px;border-radius:6px;border:1px solid var(--edge)}
+  .pred{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .pred span{font-weight:700;color:var(--deep);font-size:16px;margin-right:4px}
+  .lock{font-size:15px;color:var(--coral);font-weight:700}
+  table.obs{border-collapse:collapse;width:100%;font-size:16px}
+  table.obs th,table.obs td{border:1px solid var(--edge);padding:6px 8px;text-align:center}
+  table.obs th{background:var(--soft);color:var(--deep)}
+  table.obs td.cell{cursor:pointer;background:#fff;min-width:88px;height:40px;font-weight:700}
+  table.obs td.ok{background:var(--mint);color:var(--green)}
+  table.obs td.bad{background:var(--sand);color:var(--coral)}
+  .bigbtn{font:inherit;font-size:19px;font-weight:700;padding:12px 16px;border-radius:12px;border:3px solid var(--coral);background:#fff;color:var(--coral);cursor:pointer;width:100%}
+  .bigbtn.on{background:var(--coral);color:#fff}
+  svg{touch-action:none}
+  @media (max-width:600px){header{padding:10px 12px}h1{font-size:22px}main{padding:10px 10px 18px}.tabs button{font-size:15px;padding:7px 10px}}
+
+</style>
+</head>
+<body>
+<script>
+function tab(n){document.querySelectorAll('.tabs button').forEach((b,i)=>b.classList.toggle('on',i===n));
+document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('on',i===n));
+if(window.onTab)window.onTab(n);}
+const $=id=>document.getElementById(id);
+const NS='http://www.w3.org/2000/svg';
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(parent,x,y,s,attrs){const t=el('text',Object.assign({x:x,y:y},attrs||{}),parent);t.textContent=s;return t;}
+</script>
+<!--TITLE:DS 10 · Was passiert beim Sieden?-->
+<header>
+  <div><div class="kicker">Doppelstunde 10 · Aggregatzustände</div><h1>Was passiert beim Sieden?</h1></div>
+  <div class="tabs"><button class="on" onclick="tab(0)">1 · Wasser wird erhitzt</button><button onclick="tab(1)">2 · Im Teilchenmodell</button></div>
+</header>
+<main>
+<!-- ================= Reiter 1 ================= -->
+<section class="panel on">
+  <div class="grid">
+    <div class="card">
+      <svg id="sv1" viewBox="0 0 760 420" width="100%"></svg>
+      <div id="st1" class="status"></div>
+    </div>
+    <div class="ctrl">
+      <div class="card">
+        <div class="btnrow"><button id="run1" onclick="toggleRun1()">Heizen starten</button><button class="coral" onclick="reset1()">Neu</button></div>
+        <div class="big" style="margin-top:10px">Thermometer</div>
+        <p class="hint" style="margin:2px 0 6px">Zieht das Thermometer in der Grafik nach oben oder unten – oder tippt:</p>
+        <div class="btnrow" id="posBtns"><button onclick="setPos(0)">im Wasser</button><button onclick="setPos(1)">knapp über dem Wasser</button><button onclick="setPos(2)">weit oben</button></div>
+        <button id="rec" class="bigbtn" style="margin-top:12px" onclick="record()">Messwert eintragen</button>
+        <div class="btnrow" style="margin-top:8px"><button id="showC" onclick="toggleCurve()" disabled>Kurve des Wassers zeigen</button></div>
+        <div id="showHint" class="lock" style="margin-top:4px">Erst ab 10 eigenen Messwerten.</div>
+      </div>
+      <div class="card"><svg id="dg1" viewBox="0 0 420 260" width="100%"></svg></div>
+      <p class="task"><b>Untersucht:</b> Tragt jede Minute einen Messwert ein, zuerst mit dem Thermometer im Wasser. Wenn das Wasser siedet: Schiebt das Thermometer über das Wasser. Was zeigt es dort an?</p>
+      <p class="hint">Modell: 1 Minute dauert hier etwa 1,5 Sekunden. Temperaturwerte sind gerundete Modellwerte, das Gefäß ist offen.</p>
+    </div>
+  </div>
+</section>
+<!-- ================= Reiter 2 ================= -->
+<section class="panel">
+  <div class="grid">
+    <div class="card">
+      <svg id="sv2" viewBox="0 0 760 420" width="100%"></svg>
+      <div id="st2" class="status"></div>
+    </div>
+    <div class="ctrl">
+      <div class="card">
+        <div class="big">Das Wasser siedet und ihr heizt weiter. Was macht die Temperatur?</div>
+        <div class="pred" style="margin-top:8px"><button class="act" onclick="predict2(0)">steigt weiter</button><button class="act" onclick="predict2(1)">bleibt gleich</button><button class="act" onclick="predict2(2)">sinkt</button></div>
+        <div class="btnrow" style="margin-top:10px"><button id="run2" onclick="toggleRun2()" disabled>Wärme zuführen</button><button class="coral" onclick="reset2()">Neu</button></div>
+        <div id="lock2" class="lock" style="margin-top:4px">Erst eine Vorhersage abgeben.</div>
+      </div>
+      <div class="card">
+        <div class="counters">
+          <div class="cnt"><b id="cE">0</b><span>zugeführte Wärme</span></div>
+          <div class="cnt"><b id="cT">20 °C</b><span>Temperatur</span></div>
+          <div class="cnt"><b id="cL">30</b><span>Teilchen flüssig</span></div>
+          <div class="cnt"><b id="cG">0</b><span>Teilchen gasförmig</span></div>
+        </div>
+      </div>
+      <p class="task"><b>Untersucht:</b> Beobachtet die Zähler während des Siedens. Wofür wird die Wärme gebraucht, wenn die Temperatur nicht mehr steigt?</p>
+      <p class="hint">Modell: Wasser in einem Zylinder mit beweglichem Deckel. Das Gas ist viel zu dicht gezeichnet – in Wirklichkeit braucht Wasserdampf etwa 1700-mal so viel Platz wie das flüssige Wasser. Auch das waagerechte Stück ist verkürzt: Das Verdampfen braucht in Wirklichkeit fast 7-mal so viel Wärme wie das Erwärmen von 20 auf 100 °C.</p>
+    </div>
+  </div>
+</section>
+</main>
+<script>
+/* ===================== Reiter 1 ===================== */
+const sv1=$('sv1'),dg1=$('dg1');
+const B={x:110,y:140,w:240,h:230}; // Becherglas
+const MIN_PER_FRAME=1/90;            // 1 min ≈ 1,5 s bei 60 fps
+let t1,Tw,level,run1,thermY,thermT,points,showCurve,hist,bubbles,steam,lastMsg1='',dragging=false;
+function surfY(){return B.y+B.h-level*B.h;}
+function reset1(){t1=0;Tw=20;level=0.62;run1=false;thermY=surfY()+60;thermT=20;points=[];showCurve=false;hist=[[0,20]];bubbles=[];steam=[];
+  $('run1').textContent='Heizen starten';$('showC').disabled=true;$('showC').textContent='Kurve des Wassers zeigen';$('showHint').textContent='Erst ab 10 eigenen Messwerten.';drawDiag();}
+function toggleRun1(){if(t1>=14)return;run1=!run1;$('run1').textContent=run1?'Pause':'Weiter heizen';}
+function zone(){const dy=surfY()-thermY;return dy<0?0:dy<45?1:2;}
+function setPos(z){const s=surfY();thermY=z===0?s+60:z===1?s-22:s-150;thermY=Math.max(20,thermY);}
+function targetT(){const dy=surfY()-thermY;const boiling=Tw>=99.9;
+  if(dy<0)return Tw;
+  const room=24;
+  if(boiling){if(dy<45)return 100-dy*0.02;return Math.max(room+8,100-(dy-45)*0.55);}
+  const f=Math.max(0.15,0.7-dy/200);return room+(Tw-room)*f;}
+function record(){if(t1===0&&!run1){$('st1').textContent='Startet zuerst das Heizen.';return;}
+  const last=points[points.length-1];if(last&&Math.abs(last[0]-t1)<0.3){$('st1').textContent='Wartet bis zur nächsten Minute.';return;}
+  points.push([t1,Math.round(thermT),zone()]);drawDiag();
+  if(points.length>=10){$('showC').disabled=false;$('showHint').textContent='';}}
+function toggleCurve(){showCurve=!showCurve;$('showC').textContent=showCurve?'Kurve des Wassers ausblenden':'Kurve des Wassers zeigen';drawDiag();}
+// Ziehen des Thermometers (Maus und Touch)
+function svgY(ev){const r=sv1.getBoundingClientRect();return (ev.clientY-r.top)/r.height*420;}
+sv1.addEventListener('pointerdown',ev=>{const r=sv1.getBoundingClientRect();const x=(ev.clientX-r.left)/r.width*760;if(Math.abs(x-300)<40){dragging=true;sv1.setPointerCapture(ev.pointerId);thermY=Math.max(20,Math.min(B.y+B.h-14,svgY(ev)));}});
+sv1.addEventListener('pointermove',ev=>{if(dragging)thermY=Math.max(20,Math.min(B.y+B.h-14,svgY(ev)));});
+sv1.addEventListener('pointerup',()=>dragging=false);
+function frame1(){
+  if(run1){t1=Math.min(14,t1+MIN_PER_FRAME);
+    if(Tw<100){Tw=Math.min(100,Tw+15*(1-(Tw-20)/120)*MIN_PER_FRAME);}else{level=Math.max(0.3,level-0.012*MIN_PER_FRAME);}
+    if(Math.abs(hist[hist.length-1][0]-t1)>0.05)hist.push([t1,Tw]);
+    if(t1>=14){run1=false;$('run1').textContent='Fertig';}
+    if(Math.round(t1*90)%9===0)drawDiag();}
+  // Thermometer folgt mit Trägheit
+  if(thermY>B.y+B.h-14)thermY=B.y+B.h-14;
+  if(zone()===0&&thermY<surfY()+12)thermY=surfY()+12;
+  thermT+=(targetT()-thermT)*0.06;
+  const boiling=Tw>=99.9;
+  // Blasen und Dampf
+  if(run1&&boiling&&Math.random()<0.25)bubbles.push({x:B.x+20+Math.random()*(B.w-40),y:B.y+B.h-8,r:3});
+  if(run1&&Tw>85&&!boiling&&Math.random()<0.05)bubbles.push({x:B.x+20+Math.random()*(B.w-40),y:B.y+B.h-8,r:2,small:true});
+  bubbles.forEach(b=>{b.y-=b.small?0.6:1.6;b.r+=b.small?-0.02:0.05;});
+  bubbles=bubbles.filter(b=>b.y>surfY()+b.r&&b.r>0.5);
+  if(run1&&Tw>60&&Math.random()<(boiling?0.5:(Tw-60)/200))steam.push({x:B.x+20+Math.random()*(B.w-40),y:surfY()-4,a:1,vx:(Math.random()-.5)*0.4});
+  steam.forEach(s=>{s.y-=1.2;s.x+=s.vx;s.a-=0.012;});steam=steam.filter(s=>s.a>0);
+  // Zeichnen
+  sv1.innerHTML='';
+  // Heizplatte
+  el('rect',{x:B.x-30,y:B.y+B.h+6,width:B.w+60,height:26,rx:6,fill:run1?'#B4431F':'#666'},sv1);
+  txt(sv1,B.x+B.w/2,B.y+B.h+24,'Heizplatte',{'text-anchor':'middle','font-size':14,fill:'#fff','font-weight':700});
+  // Wasser
+  const sy=surfY();
+  el('rect',{x:B.x,y:sy,width:B.w,height:B.y+B.h-sy,fill:'#CFE6F5'},sv1);
+  bubbles.forEach(b=>{el('circle',{cx:b.x,cy:b.y,r:b.r,fill:'#fff',stroke:'#7FA9C4'},sv1);});
+  steam.forEach(s=>el('circle',{cx:s.x,cy:s.y,r:5,fill:'#C9D3DA',opacity:s.a*0.5},sv1));
+  // Becherglas
+  el('path',{d:`M${B.x},${B.y-10} L${B.x},${B.y+B.h} L${B.x+B.w},${B.y+B.h} L${B.x+B.w},${B.y-10}`,fill:'none',stroke:'#1B2A38','stroke-width':4},sv1);
+  // Lupe auf eine Blase
+  if(boiling){el('line',{x1:B.x+B.w*0.35,y1:B.y+B.h-60,x2:470,y2:300,stroke:'#C6D6DE','stroke-width':2,'stroke-dasharray':'5 5'},sv1);
+    el('circle',{cx:560,cy:310,r:88,fill:'#CFE6F5',stroke:'#065A82','stroke-width':3},sv1);
+    for(let i=0;i<30;i++){const a=i*0.62,rr=60+((i*37)%24);const px=560+Math.cos(a)*rr,py=310+Math.sin(a)*rr;if(Math.hypot(px-560,py-310)<84)el('circle',{cx:px+Math.sin(performance.now()/90+i)*1.5,cy:py,r:6,fill:'#065A82'},sv1);}
+    el('circle',{cx:560,cy:310,r:40,fill:'#fff',stroke:'#7FA9C4','stroke-width':2},sv1);
+    const tt=performance.now()/400;for(let i=0;i<3;i++)el('circle',{cx:560+Math.cos(tt*(1+i*0.3)+i*2)*24,cy:310+Math.sin(tt*(1.2+i*0.2)+i)*24,r:6,fill:'#065A82'},sv1);
+    txt(sv1,560,212,'Lupe: eine Blase',{'text-anchor':'middle','font-size':15,'font-weight':700,fill:'#065A82'});}
+  // Thermometer
+  const tx=300;
+  el('rect',{x:tx-6,y:10,width:12,height:thermY-10,rx:6,fill:'#fff',stroke:'#1B2A38','stroke-width':2},sv1);
+  el('circle',{cx:tx,cy:thermY,r:10,fill:'#C0392B',stroke:'#1B2A38','stroke-width':2},sv1);
+  const colH=Math.max(4,(thermY-24)*(thermT-0)/115);
+  el('rect',{x:tx-3,y:thermY-colH,width:6,height:colH,fill:'#C0392B'},sv1);
+  el('rect',{x:tx+16,y:Math.max(14,thermY-36),width:96,height:34,rx:8,fill:'#fff',stroke:'#065A82','stroke-width':2},sv1);
+  txt(sv1,tx+64,Math.max(14,thermY-36)+24,Math.round(thermT)+' °C',{'text-anchor':'middle','font-size':21,'font-weight':700,fill:'#065A82'});
+  txt(sv1,tx-12,thermY+4,'⇕',{'text-anchor':'end','font-size':20,fill:'#5A6E7B'});
+  // Uhr
+  el('rect',{x:560,y:14,width:180,height:44,rx:10,fill:'#EAF2F6',stroke:'#C6D6DE'},sv1);
+  txt(sv1,650,44,'Zeit: '+t1.toFixed(1).replace('.',',')+' min',{'text-anchor':'middle','font-size':20,'font-weight':700,fill:'#065A82'});
+  [...$('posBtns').children].forEach((b,i)=>b.classList.toggle('on',i===zone()));
+  const s=$('st1');let m;
+  if(!run1&&t1===0)m='Das Wasser hat Raumtemperatur. Startet das Heizen.';
+  else if(!boiling&&zone()===0)m=Tw>85?'Am Boden bilden sich kleine Bläschen, die wieder verschwinden. Die Temperatur steigt.':'Das Wasser wird wärmer. Die Temperatur steigt.';
+  else if(boiling&&zone()===0)m='Überall im Wasser entstehen große Blasen und steigen auf. Der Wasserstand sinkt.';
+  else if(zone()===1)m='Das Thermometer ist knapp über dem Wasser.';
+  else m='Das Thermometer ist weit über dem Wasser.';
+  if(t1>=14)m='Die Messung ist beendet. '+m;
+  if(m!==lastMsg1){s.textContent=m;lastMsg1=m;}
+}
+function drawDiag(){
+  dg1.innerHTML='';const X0=46,Y0=220,W=360,H=200;const sx=t=>X0+t/14*W,sy=T=>Y0-T/110*H;
+  for(let t=0;t<=14;t++){el('line',{x1:sx(t),y1:Y0,x2:sx(t),y2:Y0-H,stroke:'#E3ECF1'},dg1);if(t%2===0)txt(dg1,sx(t),Y0+16,t,{'text-anchor':'middle','font-size':12,fill:'#5A6E7B'});}
+  for(let T=0;T<=110;T+=10){el('line',{x1:X0,y1:sy(T),x2:X0+W,y2:sy(T),stroke:'#E3ECF1'},dg1);txt(dg1,X0-6,sy(T)+4,T,{'text-anchor':'end','font-size':12,fill:'#5A6E7B'});}
+  el('line',{x1:X0,y1:Y0,x2:X0+W,y2:Y0,stroke:'#1B2A38','stroke-width':1.5},dg1);el('line',{x1:X0,y1:Y0,x2:X0,y2:Y0-H,stroke:'#1B2A38','stroke-width':1.5},dg1);
+  txt(dg1,X0+W/2,Y0+34,'Zeit in min',{'text-anchor':'middle','font-size':13,fill:'#1B2A38'});
+  txt(dg1,14,Y0-H/2,'Temperatur in °C',{'text-anchor':'middle','font-size':13,fill:'#1B2A38',transform:`rotate(-90 14 ${Y0-H/2})`});
+  if(showCurve)el('polyline',{points:hist.map(p=>sx(p[0])+','+sy(p[1])).join(' '),fill:'none',stroke:'#065A82','stroke-width':2.5,opacity:.6},dg1);
+  points.forEach(p=>{const c=p[2]===0?'#065A82':'#B4431F';el('circle',{cx:sx(p[0]),cy:sy(p[1]),r:4.5,fill:c},dg1);});
+  el('circle',{cx:X0+12,cy:12,r:4.5,fill:'#065A82'},dg1);txt(dg1,X0+20,16,'im Wasser',{'font-size':12,fill:'#1B2A38'});
+  el('circle',{cx:X0+110,cy:12,r:4.5,fill:'#B4431F'},dg1);txt(dg1,X0+118,16,'über dem Wasser',{'font-size':12,fill:'#1B2A38'});
+}
+reset1();
+
+/* ===================== Reiter 2 ===================== */
+const sv2=$('sv2');
+const Z={x:70,w:220,bottom:390,top:40};
+const N=30,RP=9;
+let E,T2,run2,pred2=null,P2,lid,hist2,lastMsg2='',heatAcc;
+function reset2(){E=0;T2=20;run2=false;heatAcc=0;lid=Z.bottom-90;hist2=[[0,20]];
+  P2=[];for(let i=0;i<N;i++){const c=i%10,r=Math.floor(i/10);P2.push({hx:Z.x+16+c*21+(r%2)*10,hy:Z.bottom-12-r*19,x:0,y:0,vx:0,vy:0,gas:false});}
+  P2.forEach(p=>{p.x=p.hx;p.y=p.hy;});
+  $('run2').textContent='Wärme zuführen';$('run2').disabled=(pred2===null);}
+function predict2(v){pred2=v;document.querySelectorAll('.panel')[1].querySelectorAll('.pred button').forEach((b,i)=>{b.style.background=i===v?'var(--deep)':'';b.style.color=i===v?'#fff':'';});
+  $('run2').disabled=false;$('lock2').textContent='';}
+function toggleRun2(){run2=!run2;$('run2').textContent=run2?'Wärme abstellen':'Wärme zuführen';}
+function frame2(){
+  const nGas=P2.filter(p=>p.gas).length;
+  if(run2&&E<420){const dE=0.5;E+=dE;
+    if(T2<100)T2=Math.min(100,T2+dE*0.9);
+    else if(nGas<N){heatAcc+=dE;if(heatAcc>=9){heatAcc-=9;const liq=P2.filter(p=>!p.gas).sort((a,b)=>a.hy-b.hy);const q=liq[0];q.gas=true;const a=-Math.PI/2+(Math.random()-.5)*2;q.vx=Math.cos(a)*3;q.vy=Math.sin(a)*3;}}
+    else T2=Math.min(160,T2+dE*1.6);
+    if(Math.abs(hist2[hist2.length-1][0]-E)>=1)hist2.push([E,T2]);
+    if(E>=420){run2=false;$('run2').textContent='Fertig';}}
+  const g=P2.filter(p=>p.gas).length;
+  const lidT=Z.bottom-90-g*7.5-(g===N?(T2-100)*0.6:0);lid+=(Math.max(Z.top,lidT)-lid)*0.05;
+  const sp=1+(T2-20)/40;
+  P2.forEach((p,i)=>{
+    if(p.gas){p.x+=p.vx*sp*0.6;p.y+=p.vy*sp*0.6;if(p.x<Z.x+RP){p.x=Z.x+RP;p.vx*=-1;}if(p.x>Z.x+Z.w-RP){p.x=Z.x+Z.w-RP;p.vx*=-1;}
+      if(p.y<lid+RP+8){p.y=lid+RP+8;p.vy*=-1;}const liqTop=Z.bottom-12-Math.ceil((N-g)/10)*19;if(p.y>liqTop-RP&&g<N){p.y=liqTop-RP;p.vy=-Math.abs(p.vy);}if(p.y>Z.bottom-RP){p.y=Z.bottom-RP;p.vy*=-1;}}
+    else{const t=performance.now()/1000;const amp=0.6+(T2-20)*0.035;p.x+=(p.hx+Math.sin(t*9+i*1.7)*amp-p.x)*0.2;p.y+=(p.hy+Math.cos(t*8+i*2.3)*amp-p.y)*0.2;}
+  });
+  // Flüssige Teilchen nach unten nachrücken
+  const liq=P2.filter(p=>!p.gas);liq.sort((a,b)=>b.hy-a.hy||a.hx-b.hx);
+  liq.forEach((p,k)=>{const c=k%10,r=Math.floor(k/10);p.hx=Z.x+16+c*21+(r%2)*10;p.hy=Z.bottom-12-r*19;});
+  sv2.innerHTML='';
+  // Zylinder
+  el('rect',{x:Z.x-30,y:Z.bottom+8,width:Z.w+60,height:22,rx:6,fill:run2?'#B4431F':'#666'},sv2);
+  el('path',{d:`M${Z.x},${Z.top-10} L${Z.x},${Z.bottom} L${Z.x+Z.w},${Z.bottom} L${Z.x+Z.w},${Z.top-10}`,fill:'none',stroke:'#1B2A38','stroke-width':4},sv2);
+  el('rect',{x:Z.x+3,y:lid,width:Z.w-6,height:10,fill:'#555'},sv2);
+  el('line',{x1:Z.x+Z.w/2,y1:lid,x2:Z.x+Z.w/2,y2:Math.max(8,lid-40),stroke:'#555','stroke-width':4},sv2);
+  if(run2)for(let k=0;k<4;k++)el('path',{d:`M${Z.x+30+k*52},${Z.bottom+40} l0,-14 m-6,6 l6,-6 l6,6`,stroke:'#B4431F','stroke-width':3,fill:'none'},sv2);
+  P2.forEach(p=>el('circle',{cx:p.x,cy:p.y,r:RP,fill:'#065A82',stroke:'#03344C'},sv2));
+  txt(sv2,Z.x+Z.w/2,24,'beweglicher Deckel',{'text-anchor':'middle','font-size':14,fill:'#5A6E7B'});
+  // Diagramm T über Wärme
+  const X0=380,Y0=360,W=350,H=300;const sx=e=>X0+e/420*W,sy=T=>Y0-(T-0)/160*H;
+  for(let e=0;e<=420;e+=60){el('line',{x1:sx(e),y1:Y0,x2:sx(e),y2:Y0-H,stroke:'#E3ECF1'},sv2);txt(sv2,sx(e),Y0+18,e,{'text-anchor':'middle','font-size':13,fill:'#5A6E7B'});}
+  for(let T=0;T<=160;T+=20){el('line',{x1:X0,y1:sy(T),x2:X0+W,y2:sy(T),stroke:'#E3ECF1'},sv2);txt(sv2,X0-6,sy(T)+4,T,{'text-anchor':'end','font-size':13,fill:'#5A6E7B'});}
+  el('line',{x1:X0,y1:Y0,x2:X0+W,y2:Y0,stroke:'#1B2A38','stroke-width':1.5},sv2);el('line',{x1:X0,y1:Y0,x2:X0,y2:Y0-H,stroke:'#1B2A38','stroke-width':1.5},sv2);
+  txt(sv2,X0+W/2,Y0+40,'zugeführte Wärme (Einheiten)',{'text-anchor':'middle','font-size':14,fill:'#1B2A38'});
+  txt(sv2,X0-36,Y0-H/2,'Temperatur in °C',{'text-anchor':'middle','font-size':14,fill:'#1B2A38',transform:`rotate(-90 ${X0-36} ${Y0-H/2})`});
+  el('polyline',{points:hist2.map(p=>sx(p[0])+','+sy(p[1])).join(' '),fill:'none',stroke:'#B4431F','stroke-width':3},sv2);
+  $('cE').textContent=Math.round(E);$('cT').textContent=Math.round(T2)+' °C';$('cL').textContent=N-g;$('cG').textContent=g;
+  const s=$('st2');let m;
+  if(pred2===null)m='Gebt zuerst eine Vorhersage ab.';
+  else if(E===0&&!run2)m='Das Wasser ist flüssig, alle Teilchen liegen dicht beieinander.';
+  else if(T2<100)m='Die Teilchen bewegen sich immer heftiger. Die Temperatur steigt.';
+  else if(g<N)m='Teilchen lösen sich aus der Flüssigkeit und fliegen frei umher. Der Deckel steigt. Die Temperatur liegt bei 100 °C.';
+  else m='Alle Teilchen sind gasförmig. Die Teilchen werden schneller, die Temperatur steigt.';
+  if(!run2&&E>0&&E<420)m='Wärme abgestellt. '+m;
+  if(m!==lastMsg2){s.textContent=m;lastMsg2=m;}
+}
+reset2();
+let active=0;window.onTab=n=>{active=n;};
+function loop(){if(active===0)frame1();else frame2();requestAnimationFrame(loop);}
+loop();
+</script>
+
+</body>
+</html>

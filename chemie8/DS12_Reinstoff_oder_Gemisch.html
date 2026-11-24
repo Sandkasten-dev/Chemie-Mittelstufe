@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DS 12 · Reinstoff oder Gemisch?</title>
+<style>
+  :root{
+    --deep:#065A82; --coral:#B4431F; --green:#0B6650; --ink:#1B2A38; --muted:#5A6E7B;
+    --soft:#EAF2F6; --sand:#FCEEE8; --mint:#E9F6F2; --edge:#C6D6DE; --field:#F6FAFC;
+    --enzym:#8DB83A; --gelb:#F2C230; --violett:#6B4E9B;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;color:var(--ink);font-family:Calibri,"Segoe UI",Carlito,Arial,sans-serif;}
+  header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 24px;border-bottom:3px solid var(--deep);flex-wrap:wrap}
+  .kicker{font-size:14px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+  h1{font-family:Cambria,Georgia,serif;color:var(--deep);font-size:28px;margin:0}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap}
+  .tabs button{font:inherit;font-size:17px;font-weight:700;padding:8px 16px;border-radius:10px;border:2px solid var(--deep);background:#fff;color:var(--deep);cursor:pointer}
+  .tabs button.on{background:var(--deep);color:#fff}
+  main{padding:16px 24px 24px}
+  .panel{display:none}
+  .panel.on{display:block}
+  .grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:20px}
+  @media (max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--field);border:1px solid var(--edge);border-radius:14px;padding:14px 16px}
+  .ctrl{display:flex;flex-direction:column;gap:12px}
+  label.big,.big{font-weight:700;font-size:18px;color:var(--deep)}
+  input[type=range]{width:100%;height:28px;accent-color:var(--deep)}
+  .scale{display:flex;justify-content:space-between;font-size:15px;color:var(--muted);margin-top:-6px}
+  .toggle{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:700;cursor:pointer}
+  .toggle input{width:22px;height:22px;accent-color:var(--green)}
+  .bars{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+  .bar{display:grid;grid-template-columns:150px 1fr 70px;align-items:center;gap:10px;font-size:16px}
+  .track{height:20px;background:#fff;border:1px solid var(--edge);border-radius:10px;overflow:hidden}
+  .fill{height:100%;width:0;border-radius:10px;transition:width .15s linear}
+  .val{text-align:right;font-weight:700}
+  .status{font-size:18px;font-weight:700;padding:10px 14px;border-radius:10px;margin-top:8px;background:var(--soft);color:var(--deep);min-height:44px}
+  .status.warn{background:var(--sand);color:var(--coral)}
+  .status.ok{background:var(--mint);color:var(--green)}
+  .hint{font-size:15px;color:var(--muted);line-height:1.35;margin:0}
+  .task{background:var(--mint);border-left:5px solid var(--green);border-radius:8px;padding:10px 14px;font-size:16px;line-height:1.4}
+  .task b{color:var(--green)}
+  svg text{font-family:Calibri,"Segoe UI",Carlito,Arial,sans-serif}
+  canvas{width:100%;display:block;background:#fff;border:1px solid var(--edge);border-radius:10px}
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap}
+  .btnrow button,button.act{font:inherit;font-size:16px;font-weight:700;padding:8px 14px;border-radius:9px;border:2px solid var(--deep);background:#fff;color:var(--deep);cursor:pointer}
+  .btnrow button:hover,button.act:hover{background:var(--soft)}
+  .btnrow button.on{background:var(--deep);color:#fff}
+  .btnrow button:disabled{opacity:.4;cursor:default}
+  .btnrow button.coral{border-color:var(--coral);color:var(--coral)}
+  .counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+  .cnt{background:#fff;border:1px solid var(--edge);border-radius:10px;padding:8px 10px;text-align:center}
+  .cnt b{display:block;font-size:26px;color:var(--deep);line-height:1.1}
+  .cnt span{font-size:14px;color:var(--muted)}
+  .stepinfo{font-size:17px;line-height:1.4;min-height:72px}
+  .stepinfo h3{margin:0 0 4px;font-size:19px;color:var(--deep)}
+  select{font:inherit;font-size:16px;padding:4px 6px;border-radius:6px;border:1px solid var(--edge)}
+  .pred{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .pred span{font-weight:700;color:var(--deep);font-size:16px;margin-right:4px}
+  .lock{font-size:15px;color:var(--coral);font-weight:700}
+  table.obs{border-collapse:collapse;width:100%;font-size:16px}
+  table.obs th,table.obs td{border:1px solid var(--edge);padding:6px 8px;text-align:center}
+  table.obs th{background:var(--soft);color:var(--deep)}
+  table.obs td.cell{cursor:pointer;background:#fff;min-width:88px;height:40px;font-weight:700}
+  table.obs td.ok{background:var(--mint);color:var(--green)}
+  table.obs td.bad{background:var(--sand);color:var(--coral)}
+  .bigbtn{font:inherit;font-size:19px;font-weight:700;padding:12px 16px;border-radius:12px;border:3px solid var(--coral);background:#fff;color:var(--coral);cursor:pointer;width:100%}
+  .bigbtn.on{background:var(--coral);color:#fff}
+  svg{touch-action:none}
+  @media (max-width:600px){header{padding:10px 12px}h1{font-size:22px}main{padding:10px 10px 18px}.tabs button{font-size:15px;padding:7px 10px}}
+
+</style>
+</head>
+<body>
+<script>
+function tab(n){document.querySelectorAll('.tabs button').forEach((b,i)=>b.classList.toggle('on',i===n));
+document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('on',i===n));
+if(window.onTab)window.onTab(n);}
+const $=id=>document.getElementById(id);
+const NS='http://www.w3.org/2000/svg';
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(parent,x,y,s,attrs){const t=el('text',Object.assign({x:x,y:y},attrs||{}),parent);t.textContent=s;return t;}
+</script>
+<!--TITLE:DS 12 · Reinstoff oder Gemisch?-->
+<header>
+  <div><div class="kicker">Doppelstunde 12 · Reinstoffe und Stoffgemische</div><h1>Reinstoff oder Gemisch?</h1></div>
+  <div class="tabs"><button class="on" onclick="tab(0)">1 · Teilchenlupe</button><button onclick="tab(1)">2 · Siedekurven</button></div>
+</header>
+<main>
+<!-- ================= Reiter 1 ================= -->
+<section class="panel on">
+  <div class="grid">
+    <div class="card">
+      <svg id="sv1" viewBox="0 0 760 420" width="100%"></svg>
+      <div id="st1" class="status"></div>
+    </div>
+    <div class="ctrl">
+      <div class="card">
+        <div class="big" style="margin-bottom:6px">Ordnet zuerst selbst zu (antippen)</div>
+        <table class="obs" id="tab1"><tr><th>Stoff</th><th>Reinstoff oder Gemisch?</th><th>Bestandteile mit bloßem Auge oder Mikroskop erkennbar?</th></tr></table>
+        <div class="btnrow" style="margin-top:8px"><button onclick="check1()">Prüfen und Lupe freischalten</button></div>
+        <div id="msg1" class="hint" style="margin-top:6px"></div>
+      </div>
+      <p class="task"><b>Untersucht:</b> Ordnet alle sieben Stoffe zu. Nach dem Prüfen könnt ihr jeden Stoff unter die Teilchenlupe legen: Wie viele Teilchensorten seht ihr – und sind sie gleichmäßig verteilt?</p>
+      <p class="hint">Modell: Verschiedene Stoffe haben verschiedene Teilchen (Farbe und Form). Bei Milch, Schaum, Nebel und Granit zeigt die Lupe zuerst die kleinen Bereiche, die man mit Lupe oder Mikroskop sieht. Fachbegriffe: homogen = einheitlich, auch unter dem Mikroskop; heterogen = uneinheitlich.</p>
+    </div>
+  </div>
+</section>
+<!-- ================= Reiter 2 ================= -->
+<section class="panel">
+  <div class="grid">
+    <div class="card">
+      <svg id="sv2" viewBox="0 0 760 420" width="100%"></svg>
+      <div id="st2" class="status"></div>
+    </div>
+    <div class="ctrl">
+      <div class="card">
+        <div class="pred"><span>Vorhersage: Hat auch das Gemisch aus Wasser und Alkohol ein waagerechtes Stück in der Kurve?</span>
+          <button class="act" id="v0" onclick="pred(0)">ja, bei einer Temperatur</button><button class="act" id="v1" onclick="pred(1)">nein</button></div>
+        <div class="btnrow" style="margin-top:10px"><button id="run" onclick="toggle()" disabled>Erhitzen</button><button class="coral" onclick="reset2()">Neu</button></div>
+        <div id="lock2" class="lock" style="margin-top:4px">Erst eine Vorhersage abgeben.</div>
+      </div>
+      <p class="task"><b>Untersucht:</b> Vergleicht die beiden Kurven. Woran erkennt man an einer Siedekurve, ob ein Reinstoff oder ein Gemisch vorliegt?</p>
+      <p class="hint">Modell: Beide Proben werden gleich stark erhitzt. Die Werte sind gerundete Modellwerte. Im Gemisch verdampft zuerst mehr Alkohol, dann immer mehr Wasser.</p>
+    </div>
+  </div>
+</section>
+</main>
+<script>
+/* ===== Reiter 1: Teilchenlupe ===== */
+const sv1=$('sv1');
+const ST=[
+ {n:'Wasser (destilliert)',rg:'Reinstoff',he:'—',desc:'eine Teilchensorte'},
+ {n:'Cola ohne Bläschen',rg:'Gemisch',he:'nein',desc:'Lösung'},
+ {n:'Messing',rg:'Gemisch',he:'nein',desc:'Legierung'},
+ {n:'Milch',rg:'Gemisch',he:'ja',desc:'Emulsion'},
+ {n:'Rasierschaum',rg:'Gemisch',he:'ja',desc:'Schaum'},
+ {n:'Nebel',rg:'Gemisch',he:'ja',desc:'Nebel'},
+ {n:'Granit',rg:'Gemisch',he:'ja',desc:'Gemenge'}];
+let A={},unlocked=false,sel=0,last1='';
+ST.forEach((s,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<th style="text-align:left">${s.n}</th><td class="cell" id="a${i}"></td><td class="cell" id="b${i}"></td>`;$('tab1').appendChild(tr);
+  tr.querySelector('th').onclick=()=>{if(unlocked)sel=i;};
+  $('a'+i).onclick=()=>{const o=['Reinstoff','Gemisch'];A['a'+i]=o[(o.indexOf(A['a'+i])+1)%2];$('a'+i).textContent=A['a'+i];clr(i);if(A['a'+i]==='Reinstoff'){A['b'+i]='—';$('b'+i).textContent='—';}else if(A['b'+i]==='—'){A['b'+i]=undefined;$('b'+i).textContent='';}};
+  $('b'+i).onclick=()=>{if(A['a'+i]==='Reinstoff')return;const o=['ja','nein'];A['b'+i]=o[(o.indexOf(A['b'+i])+1)%2];$('b'+i).textContent=A['b'+i];clr(i);};});
+function clr(i){$('a'+i).classList.remove('ok','bad');$('b'+i).classList.remove('ok','bad');}
+function check1(){if(ST.some((s,i)=>!A['a'+i]||!A['b'+i])){$('msg1').textContent='Füllt zuerst alle Felder aus.';return;}
+  let ok=0;ST.forEach((s,i)=>{const g1=A['a'+i]===s.rg,g2=A['b'+i]===s.he;$('a'+i).classList.toggle('ok',g1);$('a'+i).classList.toggle('bad',!g1);$('b'+i).classList.toggle('ok',g2);$('b'+i).classList.toggle('bad',!g2);if(g1&&g2)ok++;});
+  unlocked=true;document.querySelectorAll('#tab1 th').forEach((t,k)=>{if(k>2){t.style.cursor='pointer';t.style.textDecoration='underline';}});
+  $('msg1').textContent=(ok===7?'✔ Alles richtig. ':'✘ '+(7-ok)+' Zeile(n) noch falsch – nutzt die Lupe und überlegt neu. ')+'Tippt jetzt auf einen Stoffnamen, um ihn unter die Lupe zu legen.';}
+// Teilchenbilder
+function rnd(s){let x=Math.sin(s)*10000;return x-Math.floor(x);}
+const C={w:'#3C7FB1',z:'#E39A2D',f:'#7A3E9D',cu:'#C46A2B',zn:'#9AA5AE',fett:'#F2D27A',luft:'#BFD8E8',q:'#D9D2C3',fs:'#E8B4B8',gl:'#4A4A4A'};
+function drawLens(i,cx,cy,R,t){
+  const g=el('g',{},sv1);
+  el('circle',{cx,cy,r:R,fill:'#fff',stroke:'#065A82','stroke-width':4},g);
+  const clip='clip'+i;const cp=el('clipPath',{id:clip},sv1);el('circle',{cx,cy,r:R-3},cp);
+  const h=el('g',{'clip-path':`url(#${clip})`},g);
+  const P=(x,y,r,col,shape)=>{if(shape==='hex'){const d=[];for(let k=0;k<6;k++){const a=k*Math.PI/3;d.push((x+r*Math.cos(a))+','+(y+r*Math.sin(a)));}el('polygon',{points:d.join(' '),fill:col},h);}else el('circle',{cx:x,cy:y,r,fill:col},h);};
+  const jit=k=>Math.sin(t*6+k)*1.6;
+  const liquid=(cols,seed)=>{let k=0;for(let y=cy-R;y<cy+R;y+=20)for(let x=cx-R;x<cx+R;x+=20){k++;const r=rnd(seed+k);const c=cols.find(cc=>r<cc[1])||cols[cols.length-1];P(x+(Math.floor((y-cy)/20)%2)*10+jit(k),y+jit(k+3),c[2]||8,c[0],c[3]);}};
+  const name=ST[i].n;
+  if(i===0)liquid([[C.w,1]],1);
+  if(i===1)liquid([[C.z,0.12,9,'hex'],[C.f,0.16,6],[C.w,1]],2);
+  if(i===2){let k=0;for(let y=cy-R;y<cy+R;y+=19)for(let x=cx-R;x<cx+R;x+=19){k++;P(x+(Math.floor((y-cy)/19)%2)*9.5+jit(k)*0.3,y,8.5,rnd(k*7)<0.35?C.zn:C.cu);}}
+  if(i===3){liquid([[C.w,1]],3);[[-60,-40,38],[50,30,46],[-20,80,30],[70,-80,28],[-90,50,24]].forEach(([dx,dy,r],k)=>{el('circle',{cx:cx+dx+Math.sin(t+k),cy:cy+dy,r,fill:C.fett,stroke:'#C9A84A','stroke-width':2},h);});}
+  if(i===4){liquid([[C.w,1]],4);[[-50,-30,62],[70,50,52],[-60,90,36],[60,-90,40]].forEach(([dx,dy,r],k)=>{el('circle',{cx:cx+dx,cy:cy+dy,r,fill:'#fff',stroke:'#9CC8E6','stroke-width':5},h);for(let m=0;m<4;m++)P(cx+dx+Math.cos(t*2+m*1.6+k)*r*0.55,cy+dy+Math.sin(t*2.3+m*1.6+k)*r*0.55,7,'#B4431F');});}
+  if(i===5){for(let k=0;k<40;k++)P(cx-R+rnd(k*3)*2*R+Math.sin(t*2+k)*6,cy-R+rnd(k*5)*2*R+Math.cos(t*2+k)*6,6,C.luft);[[-40,-30,34],[60,40,40],[-50,80,26]].forEach(([dx,dy,r],k)=>{el('circle',{cx:cx+dx,cy:cy+dy,r,fill:'#D6E9F5',stroke:'#3C7FB1','stroke-width':2},h);});}
+  if(i===6){const cols=['#E8B4B8','#D9D2C3','#4A4A4A','#E8B4B8','#D9D2C3'];[[-80,-60],[40,-80],[-30,20],[90,30],[-70,100],[40,110],[110,-40]].forEach(([dx,dy],k)=>{el('polygon',{points:[[0,-48],[46,-12],[30,44],[-36,40],[-48,-14]].map(p=>(cx+dx+p[0])+','+(cy+dy+p[1])).join(' '),fill:cols[k%5],stroke:'#fff','stroke-width':3},h);});}
+  txt(sv1,cx,cy+R+26,name,{'text-anchor':'middle','font-size':18,'font-weight':700,fill:'#065A82'});
+}
+function frame1(){
+  sv1.innerHTML='';const t=performance.now()/1000;
+  if(!unlocked){el('circle',{cx:380,cy:195,r:150,fill:'#F4F9FC',stroke:'#C6D6DE','stroke-width':4,'stroke-dasharray':'10 8'},sv1);
+    txt(sv1,380,190,'Teilchenlupe',{'text-anchor':'middle','font-size':24,'font-weight':700,fill:'#5A6E7B'});
+    txt(sv1,380,222,'wird nach dem Prüfen frei',{'text-anchor':'middle','font-size':17,fill:'#5A6E7B'});}
+  else{drawLens(sel,300,190,160,t);
+    const s=ST[sel];const box=(y,lab,val)=>{el('rect',{x:500,y,width:240,height:58,rx:10,fill:'#EAF2F6'},sv1);txt(sv1,512,y+22,lab,{'font-size':14,fill:'#5A6E7B'});txt(sv1,512,y+46,val,{'font-size':19,'font-weight':700,fill:'#065A82'});};
+    box(60,'Reinstoff oder Gemisch',s.rg);box(130,'homogen oder heterogen',s.rg==='Reinstoff'?'—':(s.he==='ja'?'heterogen':'homogen'));box(200,'Art',s.desc);
+    txt(sv1,620,300,'◀ ▶ Stoff wechseln',{'text-anchor':'middle','font-size':15,fill:'#5A6E7B'});
+    el('rect',{x:510,y:316,width:100,height:46,rx:10,fill:'#fff',stroke:'#065A82','stroke-width':2,id:'prev',style:'cursor:pointer'},sv1);txt(sv1,560,346,'◀',{'text-anchor':'middle','font-size':22,fill:'#065A82','pointer-events':'none'});
+    el('rect',{x:630,y:316,width:100,height:46,rx:10,fill:'#fff',stroke:'#065A82','stroke-width':2,id:'next',style:'cursor:pointer'},sv1);txt(sv1,680,346,'▶',{'text-anchor':'middle','font-size':22,fill:'#065A82','pointer-events':'none'});}
+  const st=$('st1');let m;
+  if(!unlocked)m='Ordnet zuerst alle Stoffe in der Tabelle zu.';
+  else{const s=ST[sel];m=s.n+': '+(sel===0?'Man sieht nur eine Teilchensorte.':sel===2?'Zwei Teilchensorten, gleichmäßig verteilt.':sel===1?'Mehrere Teilchensorten, gleichmäßig verteilt.':'In der Lupe erkennt man getrennte Bereiche.');}
+  if(m!==last1){st.textContent=m;last1=m;}
+}
+sv1.addEventListener('click',e=>{if(!unlocked)return;const id=e.target.id;if(id==='prev')sel=(sel+6)%7;if(id==='next')sel=(sel+1)%7;});
+/* ===== Reiter 2: Siedekurven ===== */
+const sv2=$('sv2');
+let pv=null,run=false,tm,hw,hg,last2='';
+function reset2(){tm=0;hw=[[0,20]];hg=[[0,20]];run=false;$('run').textContent='Erhitzen';}
+function pred(v){pv=v;['v0','v1'].forEach((id,k)=>{$(id).style.background=k===v?'var(--deep)':'';$(id).style.color=k===v?'#fff':'';});$('run').disabled=false;$('lock2').textContent='';}
+function toggle(){if(pv===null)return;run=!run;$('run').textContent=run?'Pause':'Weiter erhitzen';}
+reset2();
+function Tw(t){return t<6.4?20+80*(1-Math.pow(1-t/6.4,1.35)):100;}
+function Tg(t){if(t<4.3)return 20+62*(1-Math.pow(1-t/4.3,1.35));return Math.min(100,82+18*(1-Math.exp(-(t-4.3)/4.5)));}
+function frame2(){
+  if(run&&tm<14){tm+=1/90;hw.push([tm,Tw(tm)]);hg.push([tm,Tg(tm)]);if(tm>=14){run=false;$('run').textContent='Fertig';}}
+  sv2.innerHTML='';
+  const X0=70,Y0=360,W=640,H=310;const sx=t=>X0+t/14*W,sy=T=>Y0-T/110*H;
+  for(let t=0;t<=14;t+=2){el('line',{x1:sx(t),y1:Y0,x2:sx(t),y2:Y0-H,stroke:'#E3ECF1'},sv2);txt(sv2,sx(t),Y0+20,t,{'text-anchor':'middle','font-size':14,fill:'#5A6E7B'});}
+  for(let T=0;T<=110;T+=10){el('line',{x1:X0,y1:sy(T),x2:X0+W,y2:sy(T),stroke:'#E3ECF1'},sv2);txt(sv2,X0-8,sy(T)+5,T,{'text-anchor':'end','font-size':14,fill:'#5A6E7B'});}
+  el('line',{x1:X0,y1:Y0,x2:X0+W,y2:Y0,stroke:'#1B2A38','stroke-width':1.5},sv2);el('line',{x1:X0,y1:Y0,x2:X0,y2:Y0-H,stroke:'#1B2A38','stroke-width':1.5},sv2);
+  txt(sv2,X0+W/2,Y0+44,'Zeit in min',{'text-anchor':'middle','font-size':15,fill:'#1B2A38'});
+  txt(sv2,22,Y0-H/2,'Temperatur in °C',{'text-anchor':'middle','font-size':15,fill:'#1B2A38',transform:`rotate(-90 22 ${Y0-H/2})`});
+  el('polyline',{points:hw.map(p=>sx(p[0])+','+sy(p[1])).join(' '),fill:'none',stroke:'#3C7FB1','stroke-width':4},sv2);
+  el('polyline',{points:hg.map(p=>sx(p[0])+','+sy(p[1])).join(' '),fill:'none',stroke:'#6FA84A','stroke-width':4,'stroke-dasharray':'10 6'},sv2);
+  el('line',{x1:X0+20,y1:30,x2:X0+60,y2:30,stroke:'#3C7FB1','stroke-width':4},sv2);txt(sv2,X0+68,35,'Wasser',{'font-size':15,fill:'#1B2A38'});
+  el('line',{x1:X0+170,y1:30,x2:X0+210,y2:30,stroke:'#6FA84A','stroke-width':4,'stroke-dasharray':'10 6'},sv2);txt(sv2,X0+218,35,'Wasser + Alkohol (Gemisch)',{'font-size':15,fill:'#1B2A38'});
+  const st=$('st2');let m;
+  if(pv===null)m='Gebt zuerst eine Vorhersage ab.';
+  else if(tm===0)m='Beide Proben haben 20 °C. Startet das Erhitzen.';
+  else m='Wasser: '+Math.round(Tw(tm))+' °C · Gemisch: '+Math.round(Tg(tm))+' °C (nach '+tm.toFixed(1).replace('.',',')+' min)';
+  st.textContent=m;
+}
+let active=0;window.onTab=n=>{active=n;};
+function loop(){if(active===0)frame1();else frame2();requestAnimationFrame(loop);}
+loop();
+</script>
+
+</body>
+</html>

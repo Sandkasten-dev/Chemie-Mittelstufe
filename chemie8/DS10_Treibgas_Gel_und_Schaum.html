@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DS 10 · Treibgas in Gel und Schaum</title>
+<style>
+  :root{
+    --deep:#065A82; --coral:#B4431F; --green:#0B6650; --ink:#1B2A38; --muted:#5A6E7B;
+    --soft:#EAF2F6; --sand:#FCEEE8; --mint:#E9F6F2; --edge:#C6D6DE; --field:#F6FAFC;
+    --enzym:#8DB83A; --gelb:#F2C230; --violett:#6B4E9B;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;color:var(--ink);font-family:Calibri,"Segoe UI",Carlito,Arial,sans-serif;}
+  header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 24px;border-bottom:3px solid var(--deep);flex-wrap:wrap}
+  .kicker{font-size:14px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+  h1{font-family:Cambria,Georgia,serif;color:var(--deep);font-size:28px;margin:0}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap}
+  .tabs button{font:inherit;font-size:17px;font-weight:700;padding:8px 16px;border-radius:10px;border:2px solid var(--deep);background:#fff;color:var(--deep);cursor:pointer}
+  .tabs button.on{background:var(--deep);color:#fff}
+  main{padding:16px 24px 24px}
+  .panel{display:none}
+  .panel.on{display:block}
+  .grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:20px}
+  @media (max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--field);border:1px solid var(--edge);border-radius:14px;padding:14px 16px}
+  .ctrl{display:flex;flex-direction:column;gap:12px}
+  label.big,.big{font-weight:700;font-size:18px;color:var(--deep)}
+  input[type=range]{width:100%;height:28px;accent-color:var(--deep)}
+  .scale{display:flex;justify-content:space-between;font-size:15px;color:var(--muted);margin-top:-6px}
+  .toggle{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:700;cursor:pointer}
+  .toggle input{width:22px;height:22px;accent-color:var(--green)}
+  .bars{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+  .bar{display:grid;grid-template-columns:150px 1fr 70px;align-items:center;gap:10px;font-size:16px}
+  .track{height:20px;background:#fff;border:1px solid var(--edge);border-radius:10px;overflow:hidden}
+  .fill{height:100%;width:0;border-radius:10px;transition:width .15s linear}
+  .val{text-align:right;font-weight:700}
+  .status{font-size:18px;font-weight:700;padding:10px 14px;border-radius:10px;margin-top:8px;background:var(--soft);color:var(--deep);min-height:44px}
+  .status.warn{background:var(--sand);color:var(--coral)}
+  .status.ok{background:var(--mint);color:var(--green)}
+  .hint{font-size:15px;color:var(--muted);line-height:1.35;margin:0}
+  .task{background:var(--mint);border-left:5px solid var(--green);border-radius:8px;padding:10px 14px;font-size:16px;line-height:1.4}
+  .task b{color:var(--green)}
+  svg text{font-family:Calibri,"Segoe UI",Carlito,Arial,sans-serif}
+  canvas{width:100%;display:block;background:#fff;border:1px solid var(--edge);border-radius:10px}
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap}
+  .btnrow button,button.act{font:inherit;font-size:16px;font-weight:700;padding:8px 14px;border-radius:9px;border:2px solid var(--deep);background:#fff;color:var(--deep);cursor:pointer}
+  .btnrow button:hover,button.act:hover{background:var(--soft)}
+  .btnrow button.on{background:var(--deep);color:#fff}
+  .btnrow button:disabled{opacity:.4;cursor:default}
+  .btnrow button.coral{border-color:var(--coral);color:var(--coral)}
+  .counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+  .cnt{background:#fff;border:1px solid var(--edge);border-radius:10px;padding:8px 10px;text-align:center}
+  .cnt b{display:block;font-size:26px;color:var(--deep);line-height:1.1}
+  .cnt span{font-size:14px;color:var(--muted)}
+  .stepinfo{font-size:17px;line-height:1.4;min-height:72px}
+  .stepinfo h3{margin:0 0 4px;font-size:19px;color:var(--deep)}
+  select{font:inherit;font-size:16px;padding:4px 6px;border-radius:6px;border:1px solid var(--edge)}
+  .pred{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .pred span{font-weight:700;color:var(--deep);font-size:16px;margin-right:4px}
+  .lock{font-size:15px;color:var(--coral);font-weight:700}
+  table.obs{border-collapse:collapse;width:100%;font-size:16px}
+  table.obs th,table.obs td{border:1px solid var(--edge);padding:6px 8px;text-align:center}
+  table.obs th{background:var(--soft);color:var(--deep)}
+  table.obs td.cell{cursor:pointer;background:#fff;min-width:88px;height:40px;font-weight:700}
+  table.obs td.ok{background:var(--mint);color:var(--green)}
+  table.obs td.bad{background:var(--sand);color:var(--coral)}
+  .bigbtn{font:inherit;font-size:19px;font-weight:700;padding:12px 16px;border-radius:12px;border:3px solid var(--coral);background:#fff;color:var(--coral);cursor:pointer;width:100%}
+  .bigbtn.on{background:var(--coral);color:#fff}
+  svg{touch-action:none}
+  @media (max-width:600px){header{padding:10px 12px}h1{font-size:22px}main{padding:10px 10px 18px}.tabs button{font-size:15px;padding:7px 10px}}
+
+</style>
+</head>
+<body>
+<script>
+function tab(n){document.querySelectorAll('.tabs button').forEach((b,i)=>b.classList.toggle('on',i===n));
+document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('on',i===n));
+if(window.onTab)window.onTab(n);}
+const $=id=>document.getElementById(id);
+const NS='http://www.w3.org/2000/svg';
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(parent,x,y,s,attrs){const t=el('text',Object.assign({x:x,y:y},attrs||{}),parent);t.textContent=s;return t;}
+</script>
+<!--TITLE:DS 10 · Treibgas in Gel und Schaum-->
+<header>
+  <div><div class="kicker">Doppelstunde 10 · Gel oder Schaum?</div><h1>Treibgas in Gel und Schaum</h1></div>
+  <div class="tabs"><button class="on" onclick="tab(0)">1 · Raus aus der Dose</button><button onclick="tab(1)">2 · Das Schäumen</button></div>
+</header>
+<main>
+<!-- ================= Reiter 1 ================= -->
+<section class="panel on">
+  <div class="grid">
+    <div class="card">
+      <svg id="sv1" viewBox="0 0 760 420" width="100%"></svg>
+      <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:15px;color:var(--muted);margin-top:4px">
+        <span><svg width="16" height="14"><circle cx="8" cy="7" r="5" fill="#B4431F"/></svg> Treibgas, gasförmig</span>
+        <span><svg width="26" height="14"><circle cx="7" cy="7" r="4" fill="#7A2A12"/><circle cx="13" cy="5" r="4" fill="#7A2A12"/><circle cx="12" cy="11" r="4" fill="#7A2A12"/></svg> Treibgas, flüssig (Tröpfchen)</span>
+        <span><svg width="22" height="14"><rect x="1" y="1" width="20" height="12" rx="3" fill="#DCEBF3" stroke="#9CB9C9"/></svg> Wasser und Seife</span>
+      </div>
+      <div id="st1" class="status"></div>
+    </div>
+    <div class="ctrl">
+      <div class="card">
+        <div class="big">Wie haltet ihr die Dose?</div>
+        <div class="btnrow" style="margin-top:6px"><button id="oUp" onclick="setOri(0)">aufrecht</button><button id="oDown" class="on" onclick="setOri(1)">Kopf nach unten</button></div>
+        <button id="spray" class="bigbtn" style="margin-top:12px" onclick="toggleSpray()">Sprühknopf drücken</button>
+        <div class="btnrow" style="margin-top:10px"><button class="coral" onclick="newCan()">Neue Dose</button></div>
+      </div>
+      <div class="card">
+        <div class="bars">
+          <div class="bar"><span>Druck in der Dose</span><div class="track"><div id="bP" class="fill" style="background:#B4431F"></div></div><span id="vP" class="val"></span></div>
+          <div class="bar"><span>Inhalt (Schaum/Gel)</span><div class="track"><div id="bC" class="fill" style="background:#5B8FB0"></div></div><span id="vC" class="val"></span></div>
+          <div class="bar"><span>flüssiges Treibgas</span><div class="track"><div id="bL" class="fill" style="background:#7A2A12"></div></div><span id="vL" class="val"></span></div>
+        </div>
+      </div>
+      <p class="task"><b>Untersucht:</b> Sprüht einmal mit der Dose auf dem Kopf und einmal aufrecht. Beobachtet Druck und flüssiges Treibgas: Warum kommt bei der aufrechten Dose irgendwann nichts mehr heraus, obwohl noch Inhalt drin ist?</p>
+      <p class="hint">Modell: Mengen und Druck sind vereinfacht. Viele Gel-Dosen haben innen zusätzlich einen Beutel – dann drückt das Treibgas von außen auf den Beutel.</p>
+    </div>
+  </div>
+</section>
+<!-- ================= Reiter 2 ================= -->
+<section class="panel">
+  <div class="grid">
+    <div class="card">
+      <svg id="sv2" viewBox="0 0 760 420" width="100%"></svg>
+      <div id="st2" class="status"></div>
+    </div>
+    <div class="ctrl">
+      <div class="card">
+        <div class="big">Treibgas</div>
+        <div class="btnrow" id="gasBtns" style="margin-top:6px"></div>
+        <div class="big" style="margin-top:10px">Temperatur</div>
+        <div class="btnrow" id="tBtns" style="margin-top:6px"><button onclick="setT(20)">20 °C (Raum)</button><button onclick="setT(33)">33 °C (Hand)</button></div>
+        <div class="pred" style="margin-top:12px"><span>Eure Vorhersage:</span><button class="act" id="pY" onclick="predict(1)">es schäumt</button><button class="act" id="pN" onclick="predict(0)">es schäumt nicht</button></div>
+        <div class="btnrow" style="margin-top:10px"><button id="go" onclick="startSim()" disabled>Start</button><span id="lock" class="lock">Erst eine Vorhersage abgeben.</span></div>
+      </div>
+      <div class="card">
+        <div class="counters">
+          <div class="cnt"><b id="cAll">36</b><span>Treibgas-Teilchen</span></div>
+          <div class="cnt"><b id="cGas">0</b><span>davon gasförmig</span></div>
+          <div class="cnt"><b id="cVol">1</b><span>mL Treibgas</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="big" style="margin-bottom:6px">Eure Beobachtungen (antippen)</div>
+        <table class="obs" id="obs"></table>
+        <div class="btnrow" style="margin-top:8px"><button id="chk" onclick="checkObs()">Prüfen</button></div>
+        <div id="chkMsg" class="hint" style="margin-top:6px"></div>
+      </div>
+      <p class="task"><b>Untersucht:</b> Probiert alle drei Treibgase bei 20 °C und bei 33 °C aus. Gebt jedes Mal zuerst eine Vorhersage ab und tragt dann ein, was ihr beobachtet.</p>
+      <p class="hint">Modell: Die Teilchen sind stark vergrößert und bleiben gleich groß. Aus 1 mL flüssigem Treibgas werden etwa 230 mL Gas – so weit auseinander kann man die Teilchen hier nicht zeichnen. Vereinfacht: Unterhalb der Siedetemperatur verdunstet in Wirklichkeit auch ein wenig.</p>
+    </div>
+  </div>
+</section>
+</main>
+<script>
+/* ============ Reiter 1: Raus aus der Dose ============ */
+const sv1=$('sv1');
+const CAN={x:200,y:40,w:200,h:340};
+let ori=1,spraying=false,cream,liq,gasN,foamOut,puffs,gasP,drops,shaken=0,lastMsg='';
+function newCan(){cream=0.72;liq=1;foamOut=0;puffs=[];spraying=false;$('spray').classList.remove('on');$('spray').textContent='Sprühknopf drücken';
+  const vg=vGas();gasN=vg*240;gasP=[];for(let i=0;i<120;i++)gasP.push({x:Math.random(),y:Math.random(),vx:(Math.random()-.5)*0.02,vy:(Math.random()-.5)*0.02});
+  drops=[];for(let i=0;i<16;i++)drops.push({x:0.1+0.8*Math.random(),y:0.1+0.8*Math.random(),ph:Math.random()*6});}
+function vGas(){return Math.max(0.05,1-cream-0.03);}
+function setOri(o){ori=o;$('oUp').classList.toggle('on',o===0);$('oDown').classList.toggle('on',o===1);}
+function toggleSpray(){spraying=!spraying;$('spray').classList.toggle('on',spraying);$('spray').textContent=spraying?'Sprühknopf loslassen':'Sprühknopf drücken';}
+newCan();
+function frame1(){
+  // Physik (vereinfacht)
+  let vg=vGas();let p=gasN/(vg*240);
+  if(spraying){
+    if(ori===1&&cream>0.005&&p>0.08){const dC=Math.min(cream,0.0007*p);const dl=cream>0?liq*(dC/cream):0;cream-=dC;liq=Math.max(0,liq-dl);foamOut+=dC;
+      if(Math.random()<0.6)puffs.push({x:CAN.x+CAN.w/2,y:CAN.y+CAN.h+36,vx:2.6+Math.random()*1.5,vy:-0.6,r:5,k:'f'});}
+    else if(p>0.01){const out=Math.min(gasN,1.4*p);gasN-=out;if(Math.random()<0.7)puffs.push({x:CAN.x+CAN.w/2,y:ori===0?CAN.y-34:CAN.y+CAN.h+36,vx:(Math.random()-.5)*2,vy:ori===0?-2.2:2.2,r:3,k:'g'});}
+  }
+  vg=vGas();p=gasN/(vg*240);
+  if(liq>0&&p<1){const dN=Math.min((1-p)*vg*240*0.12,liq/0.0006);gasN+=dN;liq=Math.max(0,liq-dN*0.0006);}
+  vg=vGas();p=gasN/(vg*240);
+  // Zeichnen
+  sv1.innerHTML='';
+  const X=CAN.x,Y=CAN.y,W=CAN.w,H=CAN.h;
+  // Hintergrund-Beschriftung
+  txt(sv1,24,30,ori===1?'Dose steht auf dem Kopf':'Dose steht aufrecht',{'font-size':17,'font-weight':700,fill:'#5A6E7B'});
+  // Inhalt (unten, Schwerkraft)
+  const cH=H*cream, gH=H-cH;
+  el('rect',{x:X,y:Y+gH,width:W,height:cH,fill:'#DCEBF3'},sv1);
+  // Tröpfchen flüssiges Treibgas
+  const nd=Math.round(liq*16);
+  for(let i=0;i<nd;i++){const d=drops[i];d.ph+=0.05;const cx=X+12+d.x*(W-24)+Math.sin(d.ph)*2,cy=Y+gH+10+d.y*Math.max(0,cH-20)+Math.cos(d.ph)*2;
+    if(cH<16)continue;[[0,0],[6,-3],[5,4]].forEach(o=>el('circle',{cx:cx+o[0],cy:cy+o[1],r:3.6,fill:'#7A2A12'},sv1));}
+  // Gasraum
+  const ng=Math.min(80,Math.round(gasN*0.55));
+  for(let i=0;i<ng;i++){const g=gasP[i];g.x+=g.vx;g.y+=g.vy;if(g.x<0||g.x>1)g.vx*=-1;if(g.y<0||g.y>1)g.vy*=-1;g.x=Math.min(1,Math.max(0,g.x));g.y=Math.min(1,Math.max(0,g.y));
+    el('circle',{cx:X+8+g.x*(W-16),cy:Y+6+g.y*Math.max(1,gH-12),r:4.5,fill:'#B4431F'},sv1);}
+  if(gH>24)txt(sv1,X-12,Y+gH/2+6,'Gasraum',{'text-anchor':'end','font-size':16,'font-weight':700,fill:'#7A2A12'});
+  if(cH>24)txt(sv1,X-12,Y+gH+cH/2+6,'Masse',{'text-anchor':'end','font-size':16,'font-weight':700,fill:'#3F6F8C'});
+  // Dose
+  el('rect',{x:X,y:Y,width:W,height:H,rx:18,fill:'none',stroke:'#1B2A38','stroke-width':5},sv1);
+  // Ventil
+    el('rect',{x:X+W/2-10,y:ori===0?Y-22:Y+H,width:20,height:22,fill:'#888'},sv1);
+  el('rect',{x:X+W/2-28,y:ori===0?Y-36:Y+H+22,width:56,height:14,rx:4,fill:spraying?'#B4431F':'#555'},sv1);
+  // Druckpfeile
+  if(p>0.2&&gH>30){const a=Math.min(1,p);[X+W*0.25,X+W*0.75].forEach(px=>{el('line',{x1:px,y1:Y+gH-34,x2:px,y2:Y+gH-6,stroke:'#B4431F','stroke-width':4*a,opacity:.7},sv1);el('path',{d:`M${px-7},${Y+gH-12} l7,10 l7,-10 z`,fill:'#B4431F',opacity:.7},sv1);});}
+  // Puffs
+  puffs.forEach(q=>{q.x+=q.vx;q.y+=q.vy;if(q.k==='f'){q.vy+=0.12;q.r+=0.15;}else q.r+=0.05;});
+  puffs=puffs.filter(q=>q.y>-20&&q.y<(q.k==='f'?370:440)&&q.x<760);
+  puffs.forEach(q=>el('circle',{cx:q.x,cy:q.y,r:q.r,fill:q.k==='f'?'#fff':'#B4431F',stroke:q.k==='f'?'#9CB9C9':'none',opacity:q.k==='f'?0.95:0.6},sv1));
+  // Teller mit Schaum
+  el('ellipse',{cx:600,cy:385,rx:120,ry:14,fill:'#E6E6E6',stroke:'#999'},sv1);
+  const fh=Math.sqrt(foamOut)*230;
+  if(fh>2){for(let k=0;k<7;k++){const r=Math.min(70,fh*0.55)*(1-k*0.09);el('circle',{cx:600+(k%3-1)*r*0.5,cy:383-r*0.6-k*fh*0.06,r:r,fill:'#fff',stroke:'#C6D6DE'},sv1);}}
+  txt(sv1,600,412,'Schaum auf dem Teller',{'text-anchor':'middle','font-size':15,fill:'#5A6E7B'});
+  // Anzeigen
+  const pd=Math.min(1,p);
+  $('bP').style.width=Math.round(pd*100)+'%';$('vP').textContent=pd>0.85?'hoch':pd>0.35?'mittel':'niedrig';
+  $('bC').style.width=Math.round(cream/0.72*100)+'%';$('vC').textContent=Math.round(cream/0.72*100)+' %';
+  $('bL').style.width=Math.round(liq*100)+'%';$('vL').textContent=Math.round(liq*100)+' %';
+  const s=$('st1');let m,c='status';
+  if(cream<0.01){m='Die Dose ist leer.';c='status warn';}
+  else if(spraying&&ori===1&&p>0.08)m='Das Gas oben drückt die Masse durch das Ventil hinaus. Flüssiges Treibgas verdampft nach.';
+  else if(spraying&&ori===1)m='Der Druck ist zu niedrig. Es kommt kaum noch etwas heraus.';
+  else if(spraying&&liq>0.01)m='Am Ventil ist Gas. Es zischt nur Treibgas heraus. Flüssiges Treibgas verdampft nach.';
+  else if(spraying){m='Das flüssige Treibgas ist aufgebraucht. Der Druck sinkt.';c='status warn';}
+  else if(liq<0.01&&cream>0.05){m='In der Dose ist noch Masse, aber kein flüssiges Treibgas mehr.';c='status warn';}
+  else m='Ventil zu. Im Gasraum stellt sich der Druck ein.';
+  if(m!==lastMsg){s.textContent=m;s.className=c;lastMsg=m;}
+}
+
+/* ============ Reiter 2: Das Schäumen ============ */
+const sv2=$('sv2');
+const GASES=[{n:'Propan',tb:-42},{n:'Isobutan',tb:-12},{n:'Isopentan',tb:28}];
+let gi=2,T=20,pred=null,running=false,parts=[],R=48,lastMsg2='',obs={};
+const CX=515,CY=222,RP=6.5;
+GASES.forEach((g,i)=>{const b=document.createElement('button');b.textContent=g.n+' ('+String(g.tb).replace('-','−')+' °C)';b.onclick=()=>setGas(i);$('gasBtns').appendChild(b);});
+function lattice(){const pts=[];const d=RP*2.05;for(let r=0;r<4;r++)for(let a=0;a<Math.max(1,r*6);a++){const ang=a/Math.max(1,r*6)*Math.PI*2;pts.push([Math.cos(ang)*r*d,Math.sin(ang)*r*d]);}
+  // 1+6+12+18 = 37 -> 36 verwenden
+  return pts.slice(0,36);}
+const LAT=lattice();
+function resetSim(){running=false;parts=LAT.map((p,i)=>({home:p,x:CX+p[0],y:CY+p[1],vx:0,vy:0,gas:false}));R=48;pred=null;
+  $('pY').classList.remove('on');$('pN').classList.remove('on');$('go').disabled=true;$('lock').textContent='Erst eine Vorhersage abgeben.';updBtns();}
+function updBtns(){[...$('gasBtns').children].forEach((b,i)=>b.classList.toggle('on',i===gi));[...$('tBtns').children].forEach((b,i)=>b.classList.toggle('on',(i===0&&T===20)||(i===1&&T===33)));
+  $('pY').style.background=pred===1?'var(--deep)':'';$('pY').style.color=pred===1?'#fff':'';$('pN').style.background=pred===0?'var(--deep)':'';$('pN').style.color=pred===0?'#fff':'';}
+function setGas(i){gi=i;resetSim();}
+function setT(t){const wasGas=parts.some(p=>p.gas);T=t;if(running&&wasGas){updBtns();return;}resetSim();}
+function predict(v){pred=v;$('go').disabled=false;$('lock').textContent='';updBtns();}
+function startSim(){if(pred===null)return;running=true;$('go').disabled=true;$('lock').textContent='läuft …';}
+resetSim();
+function frame2(){
+  const g=GASES[gi];const boil=T>g.tb;
+  if(running){
+    if(boil){const liqP=parts.filter(p=>!p.gas);if(liqP.length&&Math.random()<0.12){liqP.sort((a,b)=>Math.hypot(b.home[0],b.home[1])-Math.hypot(a.home[0],a.home[1]));const q=liqP[0];q.gas=true;const a=Math.random()*6.28;q.vx=Math.cos(a)*3.2;q.vy=Math.sin(a)*3.2;}}
+    else{const gp=parts.filter(p=>p.gas);if(gp.length&&Math.random()<0.08){const q=gp[Math.floor(Math.random()*gp.length)];q.gas=false;}}
+  }
+  const nGas=parts.filter(p=>p.gas).length;
+  const V=1+229*nGas/36;const Rt=48+(148-48)*(Math.cbrt(V)-1)/(Math.cbrt(230)-1);R+=(Rt-R)*0.04;
+  parts.forEach((p,i)=>{
+    if(p.gas){p.x+=p.vx;p.y+=p.vy;const dx=p.x-CX,dy=p.y-CY,d=Math.hypot(dx,dy);if(d>R-RP-4){const nx=dx/d,ny=dy/d;const dot=p.vx*nx+p.vy*ny;p.vx-=2*dot*nx;p.vy-=2*dot*ny;p.x=CX+nx*(R-RP-5);p.y=CY+ny*(R-RP-5);}}
+    else{const t=performance.now()/1000;const amp=0.8+(T-20)*0.05;const hx=CX+p.home[0]+Math.sin(t*9+i*1.7)*amp,hy=CY+p.home[1]+Math.cos(t*8+i*2.3)*amp;p.x+=(hx-p.x)*0.15;p.y+=(hy-p.y)*0.15;}
+  });
+  sv2.innerHTML='';
+  // Makro: Teller
+  txt(sv2,130,26,'Auf dem Teller',{'text-anchor':'middle','font-size':17,'font-weight':700,fill:'#5A6E7B'});
+  el('ellipse',{cx:130,cy:330,rx:110,ry:16,fill:'#E6E6E6',stroke:'#999'},sv2);
+  const sc=Math.cbrt(V);const bh=22*sc*0.9;const foam=nGas/36;
+  const col=foam>0.05?'#fff':'#9CC8E6';
+  for(let k=0;k<5;k++){const rr=Math.min(66,bh*0.62)*(1-k*0.1);el('circle',{cx:130+(k%3-1)*rr*0.45,cy:326-rr*0.55-k*bh*0.08,r:rr,fill:col,stroke:'#9CB9C9'},sv2);}
+  // Lupe-Verbindung
+  el('line',{x1:190,y1:270,x2:CX-200,y2:CY,stroke:'#C6D6DE','stroke-width':2,'stroke-dasharray':'5 5'},sv2);
+  // Teilchenansicht
+  el('rect',{x:290,y:42,width:450,height:372,rx:14,fill:'#F4F9FC',stroke:'#C6D6DE'},sv2);
+  txt(sv2,515,30,'Teilchenansicht (stark vergrößert)',{'text-anchor':'middle','font-size':16,'font-weight':700,fill:'#5A6E7B'});
+  // Seifenhaut / Bläschen
+  el('circle',{cx:CX,cy:CY+8,r:R+8,fill:'none',stroke:'#9CC8E6','stroke-width':12,opacity:.8},sv2);
+  el('circle',{cx:CX,cy:CY+8,r:R+2,fill:'#fff',opacity:nGas>0?1:0},sv2);
+  parts.forEach(p=>el('circle',{cx:p.x,cy:p.y+8,r:RP,fill:'#B4431F',stroke:'#7A2A12','stroke-width':1},sv2));
+  txt(sv2,515,406,'Seifenwasser (blau) · Treibgas-Teilchen (rot)',{'text-anchor':'middle','font-size':14,fill:'#5A6E7B'});
+  txt(sv2,130,56,g.n+' bei '+T+' °C',{'text-anchor':'middle','font-size':16,'font-weight':700,fill:'#065A82'});
+  $('cGas').textContent=nGas;$('cVol').textContent=Math.round(V);
+  const s=$('st2');let m,c='status';
+  if(!running){m='Wählt Treibgas und Temperatur, gebt eine Vorhersage ab und startet.';}
+  else if(boil&&nGas<36)m='Treibgas-Teilchen lösen sich aus dem Tröpfchen und fliegen schnell umher. Das Bläschen wird größer.';
+  else if(boil)m='Alle Treibgas-Teilchen sind gasförmig. Es sind immer noch 36 Teilchen.';
+  else if(nGas>0)m='Teilchen kehren ins Tröpfchen zurück. Das Bläschen schrumpft.';
+  else m='Die Treibgas-Teilchen bleiben dicht zusammen und bewegen sich nur auf der Stelle.';
+  if(running&&pred!==null)m+=' (Eure Vorhersage: '+(pred?'es schäumt':'es schäumt nicht')+'.)';
+  if(m!==lastMsg2){s.textContent=m;s.className=c;lastMsg2=m;}
+}
+// Beobachtungstabelle
+function buildObs(){const t=$('obs');t.innerHTML='<tr><th>Treibgas</th><th>20 °C</th><th>33 °C</th></tr>'+GASES.map((g,i)=>`<tr><th>${g.n}</th><td class="cell" data-k="${i}_20"></td><td class="cell" data-k="${i}_33"></td></tr>`).join('');
+  t.querySelectorAll('td.cell').forEach(td=>td.onclick=()=>{const k=td.dataset.k;obs[k]=obs[k]==='schäumt'?'schäumt nicht':'schäumt';td.textContent=obs[k];td.classList.remove('ok','bad');$('chkMsg').textContent='';});}
+buildObs();
+function checkObs(){const cells=[...document.querySelectorAll('#obs td.cell')];
+  if(cells.some(td=>!obs[td.dataset.k])){$('chkMsg').textContent='Tragt zuerst alle sechs Beobachtungen ein.';return;}
+  let ok=0;cells.forEach(td=>{const [i,t]=td.dataset.k.split('_').map(Number);const right=(t>GASES[i].tb)?'schäumt':'schäumt nicht';const good=obs[td.dataset.k]===right;td.classList.toggle('ok',good);td.classList.toggle('bad',!good);if(good)ok++;});
+  $('chkMsg').textContent=ok===6?'✔ Alles richtig beobachtet.':'✘ '+(6-ok)+' Eintrag/Einträge stimmen nicht. Probiert diese Kombination noch einmal aus.';}
+/* ============ Schleife: nur aktiver Reiter ============ */
+let active=0;window.onTab=n=>{active=n;};
+function loop(){if(active===0)frame1();else frame2();requestAnimationFrame(loop);}
+loop();
+</script>
+
+</body>
+</html>
